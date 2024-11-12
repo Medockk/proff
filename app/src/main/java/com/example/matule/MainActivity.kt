@@ -145,6 +145,7 @@ class MainActivity : ComponentActivity() {
                         val supa = SupaBase()
                         val data = Users("name", "email", "password")
                         val client = supa.createSupabaseClient()
+                        val uyitd = "kjhgfd"
                     }
                 }
             ) {
