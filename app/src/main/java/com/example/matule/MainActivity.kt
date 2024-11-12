@@ -145,7 +145,6 @@ class MainActivity : ComponentActivity() {
                         val supa = SupaBase()
                         val data = Users("name", "email", "password")
                         val client = supa.createSupabaseClient()
-                        Toast.makeText(this@MainActivity, "inserted", Toast.LENGTH_SHORT).show()
                     }
                 }
             ) {
