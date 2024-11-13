@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -26,10 +27,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,11 +49,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -62,8 +69,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.matule.ui.theme.Raleway70015_48B2E7
+import com.example.matule.ui.theme.Raleway70020White
 import com.example.matule.ui.theme._000000
+import com.example.matule.ui.theme._000000_33
 import com.example.matule.ui.theme._0D6EFD
 import com.example.matule.ui.theme._2363F6_100
 import com.example.matule.ui.theme._2B2B2B
@@ -75,6 +85,15 @@ import com.example.matule.ui.theme._D9D9D966_40
 import com.example.matule.ui.theme._DFEFFF
 import com.example.matule.ui.theme._F7F7F9
 import com.example.matule.ui.theme._F87265
+import com.yandex.mapkit.location.Location
+import com.yandex.mapkit.location.LocationListener
+import com.yandex.mapkit.location.LocationStatus
+import ru.sulgik.mapkit.compose.YandexMap
+import ru.sulgik.mapkit.compose.bindToLifecycleOwner
+import ru.sulgik.mapkit.compose.rememberAndInitializeMapKit
+import ru.sulgik.mapkit.compose.rememberCameraPositionState
+import ru.sulgik.mapkit.geometry.Point
+import ru.sulgik.mapkit.map.CameraPosition
 
 @Composable
 fun Home(onClick: () -> Unit) {
@@ -563,7 +582,13 @@ fun TopBarSearch(painter: Painter? = null) {
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(if (painter == null){0.8f}else{1.0f})
+                .fillMaxWidth(
+                    if (painter == null) {
+                        0.8f
+                    } else {
+                        1.0f
+                    }
+                )
                 .clip(shape = RoundedCornerShape(14.dp))
                 .shadow(4.dp)
                 .background(Color.White)
@@ -573,8 +598,8 @@ fun TopBarSearch(painter: Painter? = null) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box{
-                    Row(verticalAlignment = Alignment.CenterVertically){
+                Box {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton({}) {
                             Image(
                                 painter = painterResource(R.drawable.search_refactor),
@@ -586,7 +611,7 @@ fun TopBarSearch(painter: Painter? = null) {
                         val search = MutableStateOf.getMutableStateOf(search)
                         TextField(
                             value = search!!.value,
-                            onValueChange = {text ->
+                            onValueChange = { text ->
                                 search.value = text
                             },
                             colors = TextFieldDefaults.colors(
@@ -609,14 +634,18 @@ fun TopBarSearch(painter: Painter? = null) {
                         )
                     }
                 }
-                if (painter != null){
+                if (painter != null) {
                     Box(
                         modifier = Modifier
                             .size(26.dp)
                     ) {
-                        Row{
-                            Spacer(Modifier.fillMaxHeight().width(1.dp)
-                                .background(_707B81))
+                        Row {
+                            Spacer(
+                                Modifier
+                                    .fillMaxHeight()
+                                    .width(1.dp)
+                                    .background(_707B81)
+                            )
                             Spacer(Modifier.width(10.dp))
                             Image(
                                 painter = painter,
@@ -1163,13 +1192,13 @@ fun BootCard(
 }
 
 @Composable
-fun CheckOut() {
+fun CheckOut(onClick: () -> Unit) {
     val size = LocalConfiguration.current.screenWidthDp / 1.65
     BackGround()
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 35.dp),
+            .padding(top = 15.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Box(modifier = Modifier.width(size.dp)) {
@@ -1180,26 +1209,33 @@ fun CheckOut() {
                 cartScreen = true
             )
         }
-        ContactInformationCart()
+        ContactInformationCart(onClick)
         BottomCartCard("Подтвердить", true)
     }
 }
 
 @Composable
-fun ContactInformationCart() {
+fun ContactInformationCart(onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .fillMaxHeight(0.6f)
             .padding(horizontal = 14.dp)
-            .background(Color.White)
+            .background(Color.White, shape = RoundedCornerShape(16.dp)),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        ContactInformation()
+        ContactInformation(onClick = onClick)
     }
 }
 
 @Composable
-fun ContactInformation() {
-    Column {
+fun ContactInformation(onClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
         Text(
             text = "Контактная информация",
             style = TextStyle(
@@ -1221,7 +1257,7 @@ fun ContactInformation() {
             secondText = "Телефон"
         )
         Spacer(Modifier.size(12.dp))
-        OrderAddress()
+        OrderAddress(onClick = onClick)
         Spacer(Modifier.size(12.dp))
         PayMethod()
     }
@@ -1410,8 +1446,16 @@ fun EmailOrName(
     }
 }
 
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun OrderAddress() {
+fun t() {
+    CheckOut {
+
+    }
+}
+
+@Composable
+fun OrderAddress(onClick: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -1446,11 +1490,60 @@ fun OrderAddress() {
                     modifier = Modifier.size(20.dp)
                 )
             }
-            Button({}, modifier = Modifier.size(width = 500.dp, height = 100.dp)) {
-                Text("Future Map")
+            Box(
+                contentAlignment = Alignment.Center
+            ){
+                Image(
+                    painter = painterResource(R.drawable.map_btn),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .height(100.dp)
+                        .fillMaxWidth()
+                        .clickable {
+                            onClick()
+                        },
+                    contentScale = ContentScale.Crop,
+                    colorFilter = ColorFilter.tint(color = _000000_33, blendMode = BlendMode.Darken),
+                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Посмотреть на карте",
+                        style = Raleway70020White
+                    )
+                    Box(
+                        modifier = Modifier
+                            .background(color = _0D6EFD, shape = CircleShape)
+                            .size(40.dp),
+                        contentAlignment = Alignment.Center
+                    ){
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "",
+                            tint = Color.White
+                        )
+                    }
+                }
             }
         }
     }
+}
+@Composable
+fun YandexMapKit() {
+    val startPosition = CameraPosition(
+        target = Point(PointObj.myLatitude.value, PointObj.myLongitude.value),
+        zoom = 16f,
+        azimuth = 0f,
+        tilt = 0f
+    )
+    rememberAndInitializeMapKit().bindToLifecycleOwner()
+    val cameraPositionState = rememberCameraPositionState { position = startPosition }
+    YandexMap(
+        cameraPositionState = cameraPositionState,
+        modifier = Modifier.fillMaxSize()
+    )
 }
 
 @Composable

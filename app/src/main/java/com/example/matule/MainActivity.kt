@@ -41,6 +41,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.matule.ui.theme.MatuleTheme
+import com.yandex.mapkit.MapKitFactory
+import com.yandex.mapkit.location.Location
+import com.yandex.mapkit.location.LocationListener
+import com.yandex.mapkit.location.LocationStatus
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
@@ -57,6 +61,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
+import ru.sulgik.mapkit.compose.YandexMap
+import ru.sulgik.mapkit.compose.bindToLifecycleOwner
+import ru.sulgik.mapkit.compose.rememberAndInitializeMapKit
+import ru.sulgik.mapkit.compose.rememberCameraPositionState
+import ru.sulgik.mapkit.geometry.Point
+import ru.sulgik.mapkit.map.CameraPosition
 import java.util.Date
 import kotlin.concurrent.timer
 
@@ -66,93 +76,118 @@ const val postPassword = "password"
 
 
 class MainActivity : ComponentActivity() {
+    val pointObj = PointObj(this, this)
+    val local = object : LocationListener {
+        override fun onLocationUpdated(p0: Location) {
+            PointObj.myLatitude.value = p0.position.latitude
+            PointObj.myLongitude.value = p0.position.longitude
+        }
+
+        override fun onLocationStatusUpdated(p0: LocationStatus) {
+
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
+        MapKitFactory.setApiKey("eed2a724-fc95-4e5d-935a-8e0c346df956")
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-//            val navController = rememberNavController()
-//            NavHost(navController = navController, startDestination = Navigation.firstPage.route){
-//                composable(Navigation.firstPage.route){
+            val navController = rememberNavController()
+//            NavHost(navController = navController, startDestination = Navigation.firstPage.route) {
+//                composable(Navigation.firstPage.route) {
 //                    FirstPage {
-//                        navController.navigate(Navigation.onBoard1.route){
-//                            popUpTo(Navigation.firstPage.route){
+//                        navController.navigate(Navigation.onBoard1.route) {
+//                            popUpTo(Navigation.firstPage.route) {
 //                                inclusive = true
 //                            }
 //                        }
 //                    }
 //                }
-//                composable(Navigation.onBoard1.route){
-//                    OnBoard1{
-//                        navController.navigate(Navigation.onBoard2.route){
-//                            popUpTo(Navigation.onBoard1.route){
+//                composable(Navigation.onBoard1.route) {
+//                    OnBoard1 {
+//                        navController.navigate(Navigation.onBoard2.route) {
+//                            popUpTo(Navigation.onBoard1.route) {
 //                                inclusive = true
 //                            }
 //                        }
 //                    }
 //                }
-//                composable(Navigation.onBoard2.route){
-//                    OnBoard2{
-//                        navController.navigate(Navigation.onBoard3.route){
-//                            popUpTo(Navigation.onBoard2.route){
+//                composable(Navigation.onBoard2.route) {
+//                    OnBoard2 {
+//                        navController.navigate(Navigation.onBoard3.route) {
+//                            popUpTo(Navigation.onBoard2.route) {
 //                                inclusive = true
 //                            }
 //                        }
 //                    }
 //                }
-//                composable(Navigation.onBoard3.route){
+//                composable(Navigation.onBoard3.route) {
 //                    OnBoard3 {
-//                        navController.navigate(Navigation.SignIn.route){
-//                            popUpTo(Navigation.onBoard3.route){
+//                        navController.navigate(Navigation.SignIn.route) {
+//                            popUpTo(Navigation.onBoard3.route) {
 //                                inclusive = true
 //                            }
 //                        }
 //                    }
 //                }
-//                composable(Navigation.SignIn.route){
-//                    SignIn{
-//                        navController.navigate(Navigation.RegisterAccount.route){
-//                            popUpTo(Navigation.onBoard3.route){
+//                composable(Navigation.SignIn.route) {
+//                    SignIn {
+//                        navController.navigate(Navigation.RegisterAccount.route) {
+//                            popUpTo(Navigation.onBoard3.route) {
 //                                inclusive = true
 //                            }
 //                        }
 //                    }
 //                }
-//                composable(Navigation.RegisterAccount.route){
-//                    RegisterAccount{
-//                        navController.navigate(Navigation.ForgotPassword.route){
-//                            popUpTo(Navigation.SignIn.route){
+//                composable(Navigation.RegisterAccount.route) {
+//                    RegisterAccount {
+//                        navController.navigate(Navigation.ForgotPassword.route) {
+//                            popUpTo(Navigation.SignIn.route) {
 //                                inclusive = true
 //                            }
 //                        }
 //                    }
 //                }
-//                composable(Navigation.ForgotPassword.route){
-//                    ForgotPassword{
-//                        navController.navigate(Navigation.Verification.route){
-//                            popUpTo(Navigation.RegisterAccount.route){
+//                composable(Navigation.ForgotPassword.route) {
+//                    ForgotPassword {
+//                        navController.navigate(Navigation.Verification.route) {
+//                            popUpTo(Navigation.RegisterAccount.route) {
 //                                inclusive = true
 //                            }
 //                        }
 //                    }
 //                }
-//                composable(Navigation.Verification.route){
-//                    Verification{
-//                        navController.navigate(Navigation.Home.route){
-//                            popUpTo(Navigation.ForgotPassword.route){
+//                composable(Navigation.Verification.route) {
+//                    Verification {
+//                        navController.navigate(Navigation.Home.route) {
+//                            popUpTo(Navigation.ForgotPassword.route) {
 //                                inclusive = true
 //                            }
 //                        }
 //                    }
 //                }
-//                composable(Navigation.Home.route){
-//                    Home{
+//                composable(Navigation.Home.route) {
+//                    Home {
 //
 //                    }
 //                }
 //            }
-            RegisterAccount({
-
-            })
+            pointObj.requestLocationPermission()
+            Toast.makeText(this, "${PointObj.myLatitude.value}", Toast.LENGTH_SHORT).show()
+            NavHost(navController = navController, startDestination = Navigation.CheckOut.route) {
+                composable(Navigation.CheckOut.route) {
+                    CheckOut {
+                        navController.navigate(Navigation.YandexMapKit.route) {
+                            popUpTo(Navigation.CheckOut.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.YandexMapKit.route){
+                    YandexMapKit()
+                }
+            }
         }
     }
 
@@ -211,8 +246,8 @@ class MainActivity : ComponentActivity() {
                 )
                 Button(
                     onClick = {
-//                        insertUserData(name = name, email = email, password = password)
-//                        checkUsers(email, password)
+                        //insertUserData(name = name, email = email, password = password)
+                        //checkUsers(email, password)
 //                        updateData(password)
 //                        getData(password = password, email = email)
                     },
@@ -227,7 +262,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun insertUserData(
-        name: MutableState<String>, email: MutableState<String>, password: MutableState<String>
+        name: MutableState<String>,
+        email: MutableState<String>,
+        password: MutableState<String>
     ) {
         lifecycleScope.launch {
             val client = supa.createSupabaseClient()
@@ -301,9 +338,13 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }.decodeList<Users>()
-            if (data.isNotEmpty()){
-                data.forEach{
-                    Toast.makeText(this@MainActivity, "${it.name}; ${it.email}; ${it.password}", Toast.LENGTH_SHORT).show()
+            if (data.isNotEmpty()) {
+                data.forEach {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "${it.name}; ${it.email}; ${it.password}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }

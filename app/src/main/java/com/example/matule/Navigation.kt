@@ -10,4 +10,6 @@ sealed class Navigation(val route: String) {
     object ForgotPassword: Navigation("ForgotPassword")
     object Verification: Navigation("Verification")
     object Home: Navigation("Home")
+    object CheckOut: Navigation("CheckOut")
+    object YandexMapKit: Navigation("YandexMapKit")
 }
