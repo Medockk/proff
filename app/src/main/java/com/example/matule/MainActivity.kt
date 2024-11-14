@@ -53,11 +53,6 @@ import ru.sulgik.mapkit.compose.rememberCameraPositionState
 import ru.sulgik.mapkit.geometry.Point
 import ru.sulgik.mapkit.map.CameraPosition
 
-const val postgrest = "Users"
-const val postEmail = "email"
-const val postPassword = "password"
-
-
 class MainActivity : ComponentActivity(){
     lateinit var locationManager: android.location.LocationManager
     lateinit var pointObj: PointObj
@@ -107,22 +102,40 @@ class MainActivity : ComponentActivity(){
                     }
                 }
                 composable(Navigation.SignIn.route) {
-                    SignIn {
-                        navController.navigate(Navigation.RegisterAccount.route) {
-                            popUpTo(Navigation.SignIn.route) {
-                                inclusive = true
+                    SignIn(
+                        onClick = {
+                            navController.navigate(Navigation.Home.route) {
+                                popUpTo(Navigation.SignIn.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        registerAccountOnClick = {
+                            navController.navigate(Navigation.RegisterAccount.route){
+                                popUpTo(Navigation.SignIn.route){
+                                    inclusive = true
+                                }
                             }
                         }
-                    }
+                    )
                 }
                 composable(Navigation.RegisterAccount.route) {
-                    RegisterAccount {
-                        navController.navigate(Navigation.ForgotPassword.route) {
-                            popUpTo(Navigation.RegisterAccount.route) {
-                                inclusive = true
+                    RegisterAccount(
+                        onClick = {
+                            navController.navigate(Navigation.Home.route) {
+                                popUpTo(Navigation.RegisterAccount.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        signInOnClick = {
+                            navController.navigate(Navigation.SignIn.route){
+                                popUpTo(Navigation.RegisterAccount.route){
+                                    inclusive = true
+                                }
                             }
                         }
-                    }
+                    )
                 }
                 composable(Navigation.ForgotPassword.route) {
                     ForgotPassword {

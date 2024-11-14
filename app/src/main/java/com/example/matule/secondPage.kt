@@ -24,6 +24,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -63,9 +64,8 @@ const val search = "search"
 const val state1 = "state"
 
 @Composable
-fun SignIn(onClick: () -> Unit) {
-    val emailText = remember { mutableStateOf("") }
-    val passwordText = remember { mutableStateOf("") }
+fun SignIn(onClick: () -> Unit, viewModel: UserDataViewModel = viewModel(),
+           registerAccountOnClick: (() -> Unit)? = null) {
     Column {
         SetIconScreen()
         Column(
@@ -103,14 +103,14 @@ fun SignIn(onClick: () -> Unit) {
                                     SetTextField(
                                         text = "Email",
                                         placeholder = "xyz@gmail.com",
-                                        mutableState = emailText,
+                                        mutableState = viewModel.emailText,
                                         keyboardType = KeyboardType.Email,
                                         size = 50
                                     )
                                     SetTextField(
                                         text = "Пароль",
                                         placeholder = "******",
-                                        mutableState = passwordText,
+                                        mutableState = viewModel.passwordText,
                                         keyboardType = KeyboardType.Password,
                                         painter = painterResource(R.drawable.eye),
                                         size = 48
@@ -126,7 +126,8 @@ fun SignIn(onClick: () -> Unit) {
             }
             SetBottomText(
                 firstText = "Вы впервые?",
-                secondText = "Создать пользователя"
+                secondText = "Создать пользователя",
+                registerAccountOnClick = registerAccountOnClick
             )
         }
     }
@@ -153,7 +154,9 @@ fun Recover(text: String = "Восстановить") {
 }
 
 @Composable
-fun SetButton(s: String, mutableState: MutableState<Boolean>? = null, onClick: () -> Unit) {
+fun SetButton(s: String, mutableState: MutableState<Boolean>? = null, onClick: () -> Unit,
+              viewModel: UserDataViewModel = viewModel()
+) {
     if (mutableState != null) {
         if (mutableState.value) {
             SetAlertDialog(mutableState, onClick)
@@ -164,7 +167,9 @@ fun SetButton(s: String, mutableState: MutableState<Boolean>? = null, onClick: (
             if (mutableState != null) {
                 mutableState.value = true
             } else {
-                onClick()
+                if (viewModel.emailText.value != "" && viewModel.passwordText.value != ""){
+                    onClick()
+                }
             }
         },
         modifier = Modifier
@@ -239,12 +244,15 @@ fun SetAlertDialog(mutableState: MutableState<Boolean>, onClick: () -> Unit) {
 }
 
 @Composable
-fun SetBottomText(firstText: String, secondText: String) {
+fun SetBottomText(firstText: String, secondText: String,
+                  registerAccountOnClick: (() -> Unit)? = null,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 50.dp, start = 20.dp, end = 20.dp),
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = firstText,
@@ -255,20 +263,26 @@ fun SetBottomText(firstText: String, secondText: String) {
                 color = _707B81
             )
         )
-        Text(
-            text = secondText,
-            style = TextStyle(
-                fontFamily = fontFamilyRaleway,
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center,
-                color = Color.Black
+        TextButton(
+            onClick = {
+                registerAccountOnClick?.invoke()
+            }
+        ){
+            Text(
+                text = secondText,
+                style = TextStyle(
+                    fontFamily = fontFamilyRaleway,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black
+                )
             )
-        )
+        }
     }
 }
 
 @Composable
-fun RegisterAccount(onClick: () -> Unit) {
+fun RegisterAccount(onClick: () -> Unit, signInOnClick: (() -> Unit)?=null) {
     val checked = remember { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.SpaceAround) {
         SetIconScreen()
@@ -317,7 +331,8 @@ fun RegisterAccount(onClick: () -> Unit) {
 
             SetBottomText(
                 firstText = "Есть аккаунт?",
-                secondText = "Войти"
+                secondText = "Войти",
+                registerAccountOnClick = signInOnClick
             )
         }
     }
@@ -378,14 +393,6 @@ fun ForgotPassword(onClick: () -> Unit) {
             )
         }
         SetButton("Отправить", mutableState, onClick = onClick)
-    }
-}
-
-@Composable
-@Preview(showBackground = true, showSystemUi = true)
-fun p(){
-    Verification {
-
     }
 }
 

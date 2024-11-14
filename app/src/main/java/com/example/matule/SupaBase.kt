@@ -14,6 +14,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
+private const val postgrest = "Users"
+private const val postEmail = "email"
+private const val postPassword = "password"
+
 class SupaBase {
     fun createSupabaseClient(): SupabaseClient {
         return createSupabaseClient(

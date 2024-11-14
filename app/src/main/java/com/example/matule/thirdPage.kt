@@ -502,7 +502,9 @@ fun TopBar(
             ),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        IconButton(onClick = {}) {
+        IconButton(onClick = {
+            backOcClick?.invoke()
+        }) {
             if (icon != null) {
                 Icon(
                     Icons.AutoMirrored.Filled.KeyboardArrowLeft,
@@ -511,9 +513,6 @@ fun TopBar(
                         .clip(CircleShape)
                         .background(Color.White)
                         .size(44.dp)
-                        .clickable {
-                            backOcClick?.invoke()
-                        }
                 )
 
             } else {

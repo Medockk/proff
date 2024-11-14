@@ -19,4 +19,7 @@ class UserDataViewModel : ViewModel() {
 
     var latitude = 0.0
     var longitude = 0.0
+
+    val emailText = mutableStateOf("")
+    val passwordText = mutableStateOf("")
 }
