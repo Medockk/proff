@@ -1,54 +1,44 @@
 package com.example.matule
 
+import android.Manifest
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.CountDownTimer
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.clearCompositionErrors
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.matule.ui.theme.MatuleTheme
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.location.Location
 import com.yandex.mapkit.location.LocationListener
 import com.yandex.mapkit.location.LocationStatus
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.postgrest.Postgrest
@@ -56,41 +46,27 @@ import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.storage.Storage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import ru.sulgik.mapkit.compose.YandexMap
 import ru.sulgik.mapkit.compose.bindToLifecycleOwner
 import ru.sulgik.mapkit.compose.rememberAndInitializeMapKit
 import ru.sulgik.mapkit.compose.rememberCameraPositionState
 import ru.sulgik.mapkit.geometry.Point
 import ru.sulgik.mapkit.map.CameraPosition
-import java.util.Date
-import kotlin.concurrent.timer
 
 const val postgrest = "Users"
 const val postEmail = "email"
 const val postPassword = "password"
 
 
-class MainActivity : ComponentActivity() {
-    val pointObj = PointObj(this, this)
-    val local = object : LocationListener {
-        override fun onLocationUpdated(p0: Location) {
-            PointObj.myLatitude.value = p0.position.latitude
-            PointObj.myLongitude.value = p0.position.longitude
-        }
-
-        override fun onLocationStatusUpdated(p0: LocationStatus) {
-
-        }
-    }
+class MainActivity : ComponentActivity(), LocationListener {
+    lateinit var locationManager: android.location.LocationManager
+    lateinit var pointObj: PointObj
+    lateinit var cameraPosition: CameraPosition
     override fun onCreate(savedInstanceState: Bundle?) {
         MapKitFactory.setApiKey("eed2a724-fc95-4e5d-935a-8e0c346df956")
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        pointObj = PointObj(this, this)
         setContent {
             val navController = rememberNavController()
 //            NavHost(navController = navController, startDestination = Navigation.firstPage.route) {
@@ -172,8 +148,9 @@ class MainActivity : ComponentActivity() {
 //                    }
 //                }
 //            }
+            //if your gps off
+            locationManager = getSystemService(LOCATION_SERVICE) as android.location.LocationManager
             pointObj.requestLocationPermission()
-            Toast.makeText(this, "${PointObj.myLatitude.value}", Toast.LENGTH_SHORT).show()
             NavHost(navController = navController, startDestination = Navigation.CheckOut.route) {
                 composable(Navigation.CheckOut.route) {
                     CheckOut {
@@ -184,14 +161,74 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                composable(Navigation.YandexMapKit.route){
-                    YandexMapKit()
+                composable(Navigation.YandexMapKit.route) {
+                    YandexMapKit(PointObj.myLatitude, PointObj.myLongitude, cameraPosition, this@MainActivity)
                 }
             }
         }
     }
 
     val supa = SupaBase()
+    var first = true
+
+    override fun onResume() {
+        super.onResume()
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        locationManager = getSystemService(LOCATION_SERVICE) as android.location.LocationManager
+        locationManager.requestLocationUpdates(
+            android.location.LocationManager.NETWORK_PROVIDER, 500, 10f,
+            locationListener
+        )
+        locationManager.requestLocationUpdates(
+            android.location.LocationManager.GPS_PROVIDER,
+            500, 10f, locationListener
+        )
+    }
+
+    private val locationListener: android.location.LocationListener =
+        object : android.location.LocationListener {
+            override fun onLocationChanged(location: android.location.Location) {
+                PointObj.myLatitude.value = location.latitude
+                PointObj.myLongitude.value = location.longitude
+                if (first){
+                    cameraPosition = CameraPosition(
+                        target = Point(PointObj.myLatitude.value, PointObj.myLongitude.value),
+                        zoom = 16f,
+                        azimuth = 0f,
+                        tilt = 0f
+                    )
+                    first = false
+                }
+            }
+
+            override fun onProviderDisabled(provider: String) {
+            }
+
+            override fun onProviderEnabled(provider: String) {
+                if (ActivityCompat.checkSelfPermission(
+                        this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION
+                    )
+                    != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        this@MainActivity,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    return
+                }
+            }
+
+            override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
+            }
+        }
 
     @Preview(showBackground = true, showSystemUi = true)
     @Composable
@@ -361,5 +398,15 @@ class MainActivity : ComponentActivity() {
             install(Realtime)
             install(Storage)
         }
+    }
+
+    override fun onLocationUpdated(p0: Location) {
+        PointObj.myLatitude.value = p0.position.latitude
+        PointObj.myLongitude.value = p0.position.longitude
+        Toast.makeText(this, "${PointObj.myLatitude.value}", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onLocationStatusUpdated(p0: LocationStatus) {
+        TODO("Not yet implemented")
     }
 }

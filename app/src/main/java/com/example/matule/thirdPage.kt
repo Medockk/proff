@@ -1,5 +1,6 @@
 package com.example.matule
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -88,12 +89,17 @@ import com.example.matule.ui.theme._F87265
 import com.yandex.mapkit.location.Location
 import com.yandex.mapkit.location.LocationListener
 import com.yandex.mapkit.location.LocationStatus
+import ru.sulgik.mapkit.compose.Placemark
 import ru.sulgik.mapkit.compose.YandexMap
 import ru.sulgik.mapkit.compose.bindToLifecycleOwner
+import ru.sulgik.mapkit.compose.imageProvider
 import ru.sulgik.mapkit.compose.rememberAndInitializeMapKit
 import ru.sulgik.mapkit.compose.rememberCameraPositionState
+import ru.sulgik.mapkit.compose.rememberPlacemarkState
 import ru.sulgik.mapkit.geometry.Point
 import ru.sulgik.mapkit.map.CameraPosition
+import ru.sulgik.mapkit.map.ImageProvider
+import ru.sulgik.mapkit.map.fromResource
 
 @Composable
 fun Home(onClick: () -> Unit) {
@@ -1219,7 +1225,7 @@ fun ContactInformationCart(onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.6f)
+            .fillMaxHeight(0.5f)
             .padding(horizontal = 14.dp)
             .background(Color.White, shape = RoundedCornerShape(16.dp)),
         verticalArrangement = Arrangement.SpaceBetween
@@ -1234,31 +1240,35 @@ fun ContactInformation(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.SpaceAround
     ) {
-        Text(
-            text = "Контактная информация",
-            style = TextStyle(
-                fontFamily = fontFamilyRaleway,
-                fontWeight = FontWeight.W500,
-                fontSize = 14.sp,
-                color = _2B2B2B
-            )
-        )
-        Spacer(Modifier.padding(top = 15.dp))
-        EmailOrName(
-            firstText = "emmanueloyiboke@gmail.com",
-            secondText = "Email"
-        )
-        Spacer(Modifier.padding(top = 15.dp))
-        EmailOrName(
-            firstIcon = painterResource(R.drawable.empty_phone),
-            firstText = "+234-811-732-5298",
-            secondText = "Телефон"
-        )
-        Spacer(Modifier.size(12.dp))
-        OrderAddress(onClick = onClick)
-        Spacer(Modifier.size(12.dp))
+        Box{
+            Column {
+                Text(
+                    text = "Контактная информация",
+                    style = TextStyle(
+                        fontFamily = fontFamilyRaleway,
+                        fontWeight = FontWeight.W500,
+                        fontSize = 14.sp,
+                        color = _2B2B2B
+                    )
+                )
+                Spacer(Modifier.height(15.dp))
+                EmailOrName(
+                    firstText = "emmanueloyiboke@gmail.com",
+                    secondText = "Email"
+                )
+                Spacer(Modifier.height(15.dp))
+                EmailOrName(
+                    firstIcon = painterResource(R.drawable.empty_phone),
+                    firstText = "+234-811-732-5298",
+                    secondText = "Телефон"
+                )
+            }
+        }
+        Box{
+            OrderAddress(onClick = onClick)
+        }
         PayMethod()
     }
 }
@@ -1454,6 +1464,8 @@ fun t() {
     }
 }
 
+var first = true
+
 @Composable
 fun OrderAddress(onClick: () -> Unit) {
     Box(
@@ -1491,7 +1503,9 @@ fun OrderAddress(onClick: () -> Unit) {
                 )
             }
             Box(
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .padding(vertical = 12.dp)
             ){
                 Image(
                     painter = painterResource(R.drawable.map_btn),
@@ -1531,19 +1545,31 @@ fun OrderAddress(onClick: () -> Unit) {
     }
 }
 @Composable
-fun YandexMapKit() {
-    val startPosition = CameraPosition(
-        target = Point(PointObj.myLatitude.value, PointObj.myLongitude.value),
+fun YandexMapKit(latitude: MutableState<Double>, longitude: MutableState<Double>,
+                 cameraPosition: CameraPosition? = null, context: Context) {
+    var startPosition = CameraPosition(
+        target = Point(latitude.value, longitude.value),
         zoom = 16f,
         azimuth = 0f,
         tilt = 0f
     )
+    if (first && cameraPosition != null){
+        startPosition = cameraPosition
+        first = false
+    }
     rememberAndInitializeMapKit().bindToLifecycleOwner()
+    val placemarkGeometry = Point(latitude.value, longitude.value)
     val cameraPositionState = rememberCameraPositionState { position = startPosition }
     YandexMap(
         cameraPositionState = cameraPositionState,
         modifier = Modifier.fillMaxSize()
-    )
+    ){
+        val img = ImageProvider.fromResource(context = context,R.drawable.point)
+        Placemark(
+            state = rememberPlacemarkState(placemarkGeometry),
+            icon = img
+        )
+    }
 }
 
 @Composable

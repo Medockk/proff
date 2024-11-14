@@ -69,7 +69,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:storage-kt:2.5.4")
     implementation("io.github.jan-tennert.supabase:functions-kt:2.5.4")
     implementation("io.ktor:ktor-client-java:2.3.11")
-    implementation ("com.yandex.android:maps.mobile:4.8.1-lite")
+    implementation ("com.yandex.android:maps.mobile:4.8.1-full")
     implementation("ru.sulgik.mapkit:yandex-mapkit-kmp:0.1.1")
     implementation("ru.sulgik.mapkit:yandex-mapkit-kmp-compose:0.1.1")
 

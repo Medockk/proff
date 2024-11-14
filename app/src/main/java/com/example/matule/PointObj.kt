@@ -3,12 +3,14 @@ package com.example.matule
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.core.app.ActivityCompat
 import com.yandex.mapkit.location.Location
 import com.yandex.mapkit.location.LocationListener
 import com.yandex.mapkit.location.LocationStatus
-
+import ru.sulgik.mapkit.geometry.Point
 
 
 class PointObj(context: Context, activity: Activity){
@@ -17,6 +19,11 @@ class PointObj(context: Context, activity: Activity){
     companion object{
         @JvmStatic var myLatitude = mutableStateOf(0.0)
         @JvmStatic var myLongitude = mutableStateOf(0.0)
+    }
+    @Composable
+    fun getMyLocation():com.yandex.mapkit.geometry.Point{
+        var myPoint = remember { mutableStateOf(com.yandex.mapkit.geometry.Point()) }
+        return myPoint.value
     }
     fun location(){
         val locationListener = object : LocationListener{
