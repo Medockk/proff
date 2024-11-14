@@ -73,6 +73,8 @@ dependencies {
     implementation("ru.sulgik.mapkit:yandex-mapkit-kmp:0.1.1")
     implementation("ru.sulgik.mapkit:yandex-mapkit-kmp-compose:0.1.1")
 
+    implementation("com.google.zxing:core:3.2.1" )
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

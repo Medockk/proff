@@ -58,7 +58,7 @@ const val postEmail = "email"
 const val postPassword = "password"
 
 
-class MainActivity : ComponentActivity(), LocationListener {
+class MainActivity : ComponentActivity(){
     lateinit var locationManager: android.location.LocationManager
     lateinit var pointObj: PointObj
     lateinit var cameraPosition: CameraPosition
@@ -69,89 +69,129 @@ class MainActivity : ComponentActivity(), LocationListener {
         pointObj = PointObj(this, this)
         setContent {
             val navController = rememberNavController()
-//            NavHost(navController = navController, startDestination = Navigation.firstPage.route) {
-//                composable(Navigation.firstPage.route) {
-//                    FirstPage {
-//                        navController.navigate(Navigation.onBoard1.route) {
-//                            popUpTo(Navigation.firstPage.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.onBoard1.route) {
-//                    OnBoard1 {
-//                        navController.navigate(Navigation.onBoard2.route) {
-//                            popUpTo(Navigation.onBoard1.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.onBoard2.route) {
-//                    OnBoard2 {
-//                        navController.navigate(Navigation.onBoard3.route) {
-//                            popUpTo(Navigation.onBoard2.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.onBoard3.route) {
-//                    OnBoard3 {
-//                        navController.navigate(Navigation.SignIn.route) {
-//                            popUpTo(Navigation.onBoard3.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.SignIn.route) {
-//                    SignIn {
-//                        navController.navigate(Navigation.RegisterAccount.route) {
-//                            popUpTo(Navigation.onBoard3.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.RegisterAccount.route) {
-//                    RegisterAccount {
-//                        navController.navigate(Navigation.ForgotPassword.route) {
-//                            popUpTo(Navigation.SignIn.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.ForgotPassword.route) {
-//                    ForgotPassword {
-//                        navController.navigate(Navigation.Verification.route) {
-//                            popUpTo(Navigation.RegisterAccount.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.Verification.route) {
-//                    Verification {
-//                        navController.navigate(Navigation.Home.route) {
-//                            popUpTo(Navigation.ForgotPassword.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.Home.route) {
-//                    Home {
-//
-//                    }
-//                }
-//            }
-            //if your gps off
-            locationManager = getSystemService(LOCATION_SERVICE) as android.location.LocationManager
-            pointObj.requestLocationPermission()
-            NavHost(navController = navController, startDestination = Navigation.CheckOut.route) {
+            NavHost(navController = navController, startDestination = Navigation.firstPage.route) {
+                composable(Navigation.firstPage.route) {
+                    FirstPage {
+                        navController.navigate(Navigation.onBoard1.route) {
+                            popUpTo(Navigation.firstPage.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.onBoard1.route) {
+                    OnBoard1 {
+                        navController.navigate(Navigation.onBoard2.route) {
+                            popUpTo(Navigation.onBoard1.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.onBoard2.route) {
+                    OnBoard2 {
+                        navController.navigate(Navigation.onBoard3.route) {
+                            popUpTo(Navigation.onBoard2.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.onBoard3.route) {
+                    OnBoard3 {
+                        navController.navigate(Navigation.SignIn.route) {
+                            popUpTo(Navigation.onBoard3.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.SignIn.route) {
+                    SignIn {
+                        navController.navigate(Navigation.RegisterAccount.route) {
+                            popUpTo(Navigation.SignIn.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.RegisterAccount.route) {
+                    RegisterAccount {
+                        navController.navigate(Navigation.ForgotPassword.route) {
+                            popUpTo(Navigation.RegisterAccount.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.ForgotPassword.route) {
+                    ForgotPassword {
+                        navController.navigate(Navigation.Verification.route) {
+                            popUpTo(Navigation.ForgotPassword.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.Verification.route) {
+                    Verification {
+                        navController.navigate(Navigation.Home.route) {
+                            popUpTo(Navigation.Verification.route){
+                                inclusive = true
+                            }
+                            popUpTo(Navigation.SetAlertDialog.route){
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.Home.route) {
+                    Home(
+                        favoriteOnClick = {
+                            navController.navigate(Navigation.Favorite.route) {
+                                popUpTo(Navigation.Home.route){
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        myCartOnClick = {
+                            navController.navigate(Navigation.MyCart.route) {
+                                popUpTo(Navigation.Home.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.Favorite.route) {
+                    Favorite(
+                        homeOnClick = {
+                            navController.navigate(Navigation.Home.route) {
+                                popUpTo(Navigation.Favorite.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        myCartOnClick = {
+                            navController.navigate(Navigation.MyCart.route){
+                                popUpTo(Navigation.Favorite.route){
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.YandexMapKit.route) {
+                    YandexMapKit(
+                        PointObj.myLatitude,
+                        PointObj.myLongitude,
+                        cameraPosition,
+                        this@MainActivity
+                    )
+                }
+                composable(Navigation.Profile.route) {
+                    Profile()
+                }
                 composable(Navigation.CheckOut.route) {
                     CheckOut {
                         navController.navigate(Navigation.YandexMapKit.route) {
@@ -161,10 +201,22 @@ class MainActivity : ComponentActivity(), LocationListener {
                         }
                     }
                 }
-                composable(Navigation.YandexMapKit.route) {
-                    YandexMapKit(PointObj.myLatitude, PointObj.myLongitude, cameraPosition, this@MainActivity)
+                composable(Navigation.MyCart.route) {
+                    MyCart(
+                        backOcClick = {
+                            navController.navigate(Navigation.Home.route){
+                                popUpTo(Navigation.MyCart.route){
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
                 }
             }
+
+            //if your gps off
+            locationManager = getSystemService(LOCATION_SERVICE) as android.location.LocationManager
+            pointObj.requestLocationPermission()
         }
     }
 
@@ -199,7 +251,7 @@ class MainActivity : ComponentActivity(), LocationListener {
             override fun onLocationChanged(location: android.location.Location) {
                 PointObj.myLatitude.value = location.latitude
                 PointObj.myLongitude.value = location.longitude
-                if (first){
+                if (first) {
                     cameraPosition = CameraPosition(
                         target = Point(PointObj.myLatitude.value, PointObj.myLongitude.value),
                         zoom = 16f,
@@ -296,117 +348,5 @@ class MainActivity : ComponentActivity(), LocationListener {
                 }
             }
         }
-    }
-
-    private fun insertUserData(
-        name: MutableState<String>,
-        email: MutableState<String>,
-        password: MutableState<String>
-    ) {
-        lifecycleScope.launch {
-            val client = supa.createSupabaseClient()
-            val insertNewData = Users(
-                name = name.value, email = email.value, password = password.value
-            )
-            client.postgrest[postgrest].insert(insertNewData)
-            Toast.makeText(this@MainActivity, "All OK", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun checkUsers(email: MutableState<String>, password: MutableState<String>) {
-        lifecycleScope.launch {
-            val client = supa.createSupabaseClient()
-            val andCheckedUsers =
-                client.postgrest[postgrest].select(columns = Columns.list("$postEmail, $postPassword")) {
-                    filter {
-                        and {
-                            eq(postEmail, email.value)
-                            eq(postPassword, password.value)
-                        }
-                    }
-                }.decodeList<Users>()
-            if (andCheckedUsers.isNotEmpty()) {
-                Toast.makeText(this@MainActivity, "Founded", Toast.LENGTH_SHORT).show()
-                sharedPreferences()
-            } else {
-                val checkedUsers =
-                    client.postgrest[postgrest].select(columns = Columns.list("$postEmail, $postPassword")) {
-                        filter {
-                            eq(postEmail, email.value)
-                        }
-                    }.decodeList<Users>()
-                if (checkedUsers.isNotEmpty()) {
-                    Toast.makeText(this@MainActivity, "Wrong Password", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this@MainActivity, "wrong email", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    private fun sharedPreferences() {
-        val sp: SharedPreferences = getSharedPreferences("Data About User", MODE_PRIVATE)
-        val editor: SharedPreferences.Editor = sp.edit()
-        editor.putBoolean("SignUp", true)
-        editor.apply()
-    }
-
-    private fun updateData(password: MutableState<String>) {
-        lifecycleScope.launch {
-            val client = supa.createSupabaseClient()
-            val updatingData = Users(password = password.value)
-            client.postgrest[postgrest].update(updatingData) {
-                filter {
-                    eq(postPassword, "pppp")
-                }
-            }
-            Toast.makeText(this@MainActivity, "ok", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun getData(password: MutableState<String>, email: MutableState<String>) {
-        lifecycleScope.launch {
-            val clientData = supa.createSupabaseClient()
-            val data = clientData.postgrest[postgrest].select() {
-                filter {
-                    or {
-                        eq(postPassword, password.value)
-                        eq(postEmail, email.value)
-                    }
-                }
-            }.decodeList<Users>()
-            if (data.isNotEmpty()) {
-                data.forEach {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "${it.name}; ${it.email}; ${it.password}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
-    }
-
-    private fun getClient(): SupabaseClient {
-        return createSupabaseClient(
-            supabaseUrl = "https://pekaezvbbpwirvnempls.supabase.co",
-            supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBla2FlenZiYnB3aXJ2bmVtcGxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjEzNzA4NzcsImV4cCI6MjAzNjk0Njg3N30.Gmm9j4GYKyudV5p07qJ4DUbQr0AhXEfftyiHobiCYMo"
-        ) {
-            install(Postgrest)
-            install(Auth)
-            install(Functions)
-            install(Realtime)
-            install(Storage)
-        }
-    }
-
-    override fun onLocationUpdated(p0: Location) {
-        PointObj.myLatitude.value = p0.position.latitude
-        PointObj.myLongitude.value = p0.position.longitude
-        Toast.makeText(this, "${PointObj.myLatitude.value}", Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onLocationStatusUpdated(p0: LocationStatus) {
-        TODO("Not yet implemented")
     }
 }

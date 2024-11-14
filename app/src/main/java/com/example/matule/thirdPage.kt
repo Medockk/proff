@@ -9,7 +9,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -33,7 +32,6 @@ import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -50,15 +48,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -70,7 +65,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.matule.ui.theme.Raleway70015_48B2E7
 import com.example.matule.ui.theme.Raleway70020White
 import com.example.matule.ui.theme._000000
@@ -86,13 +80,9 @@ import com.example.matule.ui.theme._D9D9D966_40
 import com.example.matule.ui.theme._DFEFFF
 import com.example.matule.ui.theme._F7F7F9
 import com.example.matule.ui.theme._F87265
-import com.yandex.mapkit.location.Location
-import com.yandex.mapkit.location.LocationListener
-import com.yandex.mapkit.location.LocationStatus
 import ru.sulgik.mapkit.compose.Placemark
 import ru.sulgik.mapkit.compose.YandexMap
 import ru.sulgik.mapkit.compose.bindToLifecycleOwner
-import ru.sulgik.mapkit.compose.imageProvider
 import ru.sulgik.mapkit.compose.rememberAndInitializeMapKit
 import ru.sulgik.mapkit.compose.rememberCameraPositionState
 import ru.sulgik.mapkit.compose.rememberPlacemarkState
@@ -102,7 +92,7 @@ import ru.sulgik.mapkit.map.ImageProvider
 import ru.sulgik.mapkit.map.fromResource
 
 @Composable
-fun Home(onClick: () -> Unit) {
+fun Home(favoriteOnClick: (() -> Unit), myCartOnClick: (() -> Unit)) {
     BackGround()
     Column(
         modifier = Modifier
@@ -125,12 +115,13 @@ fun Home(onClick: () -> Unit) {
         )
         TextAll("Акции")
         CardAction()
-        BottomVector(true)
+        BottomVector(true, favoriteOnClick = favoriteOnClick,
+            myCartOnClick = myCartOnClick)
     }
 }
 
 @Composable
-fun Favorite() {
+fun Favorite(homeOnClick: (() -> Unit), myCartOnClick: (() -> Unit)) {
     BackGround()
     Column(
         modifier = Modifier
@@ -157,7 +148,7 @@ fun Favorite() {
             BootCard(whiteCart = painterResource(R.drawable.white_cart))
             Spacer(Modifier.padding(bottom = 10.dp))
         }
-        BottomVector(false)
+        BottomVector(false, homeOnClick = homeOnClick, myCartOnClick = myCartOnClick)
     }
 }
 
@@ -496,7 +487,7 @@ fun BackGround() {
 fun TopBar(
     painter: Painter, text: String, painter2: Painter? = null,
     icon: Int? = null, firstPage: Boolean = false, cartScreen: Boolean = false,
-    secondText: String? = null
+    secondText: String? = null, backOcClick: (() -> Unit)? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -520,6 +511,9 @@ fun TopBar(
                         .clip(CircleShape)
                         .background(Color.White)
                         .size(44.dp)
+                        .clickable {
+                            backOcClick?.invoke()
+                        }
                 )
 
             } else {
@@ -577,6 +571,7 @@ fun TopBar(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarSearch(painter: Painter? = null) {
     Row(
@@ -615,6 +610,35 @@ fun TopBarSearch(painter: Painter? = null) {
                             )
                         }
                         val search = MutableStateOf.getMutableStateOf(search)
+                        val expanded = remember { mutableStateOf(false
+                        ) }
+//                        SearchBar(
+//                            expanded = expanded.value,
+//                            onExpandedChange = {
+//                                expanded.value = false
+//                            },
+//                                inputField = {
+//                                    SearchBarDefaults.InputField(
+//                                        query = search!!.value,
+//                                        onQueryChange = {
+//                                            search.value = it
+//                                        },
+//                                        onSearch = {
+//                                            search.value = it
+//                                        },
+//                                        expanded = expanded.value,
+//                                        onExpandedChange = {
+//                                            expanded.value = false
+//                                        }
+//                                    )
+//                                },
+//                            colors = SearchBarColors(
+//                                containerColor = Color.White,
+//                                dividerColor = Color.Transparent
+//                            )
+//                        ) {
+//
+//                        }
                         TextField(
                             value = search!!.value,
                             onValueChange = { text ->
@@ -686,8 +710,10 @@ fun TopBarSearch(painter: Painter? = null) {
     }
 }
 
+var home = true
 @Composable
-fun BottomVector(selectedHomeIcon: Boolean) {
+fun BottomVector(selectedHomeIcon: Boolean, favoriteOnClick: (() -> Unit)? = null, homeOnClick: (() -> Unit)? = null,
+                 ordersOnClick: (() -> Unit)? = null, myCartOnClick: (() -> Unit)? = null) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.BottomCenter
@@ -704,7 +730,9 @@ fun BottomVector(selectedHomeIcon: Boolean) {
                     .clip(CircleShape)
             ) {
                 IconButton(
-                    {},
+                    {
+                        myCartOnClick?.invoke()
+                    },
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(_48B2E7)
@@ -732,7 +760,12 @@ fun BottomVector(selectedHomeIcon: Boolean) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton({}) {
+                    IconButton({
+                        if (!home){
+                            homeOnClick?.invoke()
+                            home = true
+                        }
+                    }) {
                         Image(
                             painter = if (selectedHomeIcon) {
                                 painterResource(R.drawable.selected_home)
@@ -745,7 +778,12 @@ fun BottomVector(selectedHomeIcon: Boolean) {
                         )
                     }
                     Spacer(modifier = Modifier.size(25.dp))
-                    IconButton({}) {
+                    IconButton({
+                        if (home){
+                            favoriteOnClick?.invoke()
+                            home = false
+                        }
+                    }) {
                         Image(
                             painter = if (selectedHomeIcon) {
                                 painterResource(R.drawable.unselected_heart)
@@ -761,7 +799,9 @@ fun BottomVector(selectedHomeIcon: Boolean) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton({}) {
+                    IconButton({
+                        ordersOnClick?.invoke()
+                    }) {
                         Image(
                             painter = painterResource(R.drawable.maybe),
                             contentDescription = "notification",
@@ -784,7 +824,7 @@ fun BottomVector(selectedHomeIcon: Boolean) {
 }
 
 @Composable
-fun MyCart() {
+fun MyCart(backOcClick: (() -> Unit)?) {
     val screenWidth = LocalConfiguration.current.screenWidthDp / 1.65
     BackGround()
     Column(
@@ -801,7 +841,8 @@ fun MyCart() {
                 painter = painterResource(R.drawable.eye),
                 text = "Корзина",
                 icon = 1,
-                cartScreen = true
+                cartScreen = true,
+                backOcClick = backOcClick
             )
         }
         Text(
@@ -1459,9 +1500,7 @@ fun EmailOrName(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun t() {
-    CheckOut {
 
-    }
 }
 
 var first = true

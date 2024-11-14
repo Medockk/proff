@@ -1,5 +1,8 @@
 package com.example.matule
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,16 +30,25 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.example.matule.ui.theme.Masiva40012_2B2B2B
 import com.example.matule.ui.theme.Masiva40012_707B81
@@ -209,7 +221,7 @@ fun ProfileIcon() {
 }
 
 @Composable
-fun EditProfile(onClick: () -> Unit){
+fun EditProfile(homeOnClick: () -> Unit){
     Column {
         val screen = LocalConfiguration.current.screenWidthDp / 1.65
         Box(
@@ -220,7 +232,8 @@ fun EditProfile(onClick: () -> Unit){
                 painter = painterResource(R.drawable.eye),
                 text = "Профиль",
                 icon = 1,
-                cartScreen = true
+                cartScreen = true,
+                backOcClick = homeOnClick
             )
         }
         Column(
@@ -260,7 +273,7 @@ fun EditProfile(onClick: () -> Unit){
                         RegisterData(text = "Пароль", passwordText)
                     }
                     Recover("Восстановить пароль")
-                    SetButton("Сохранить", onClick = onClick)
+                    SetButton("Сохранить", onClick = homeOnClick)
                 }
             }
             Spacer(Modifier.weight(0.3f))
@@ -271,7 +284,12 @@ fun EditProfile(onClick: () -> Unit){
 @Composable
 fun Profile(){
     val heightScreen = LocalConfiguration.current.screenHeightDp / 20
-    Column {
+    var bitmap: Bitmap? = null
+    var width = remember { mutableStateOf(0.dp) }
+    var height = remember { mutableStateOf(0.dp) }
+    Column(
+        verticalArrangement = Arrangement.SpaceAround
+    ) {
         Box(
             modifier = Modifier.padding(top = heightScreen.dp)
         ){
@@ -283,17 +301,39 @@ fun Profile(){
             )
         }
         Column(modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally) {
-            ProfileImage(style = Raleway60020_2B2B2B, center = true)
-            Text(
-                text = "Изменить фото профиля",
-                style = Raleway60012_48B2E7
-            )
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceAround
+        ) {
+            Column {
+                ProfileImage(style = Raleway60020_2B2B2B, center = true)
+                Text(
+                    text = "Изменить фото профиля",
+                    style = Raleway60012_48B2E7
+                )
+            }
             Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 15.dp)
-                .background(Color.Blue).height(70.dp))
-            Box{
+                .height(70.dp).onGloballyPositioned {
+                    width.value = it.size.width.dp
+                    height.value = it.size.height.dp
+                }){
+                val barCode = BarCode()
+                bitmap = barCode.createBarCode("https://github.com",
+                    width.value, height.value)
+                if (bitmap != null){
+                    Image(
+                        bitmap = bitmap!!.asImageBitmap(),
+                        contentDescription = "barCode",
+                        modifier = Modifier.fillMaxSize()
+
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier.padding(bottom = heightScreen.dp)
+            ){
                 Column(
-                    modifier = Modifier.fillMaxSize()) {
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceEvenly) {
                     val familiaText = MutableStateOf.getMutableStateOf(familia)
                     val nameText = MutableStateOf.getMutableStateOf(name)
                     val addressText = MutableStateOf.getMutableStateOf(address)
@@ -324,6 +364,7 @@ fun Profile(){
     }
 }
 
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun Search(){
     BackGround()
@@ -373,7 +414,6 @@ fun ShowSearchStory(item: String) {
     }
 }
 
-@Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun Notification(){
     val screen = LocalConfiguration.current.screenWidthDp / 1.65
