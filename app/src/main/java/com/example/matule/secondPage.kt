@@ -21,6 +21,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxColors
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -315,7 +317,12 @@ fun RegisterAccount(onClick: () -> Unit, signInOnClick: (() -> Unit)?=null) {
                     checked = checked.value,
                     onCheckedChange = { state ->
                         checked.value = state
-                    }
+                    },
+                    colors = CheckboxDefaults.colors(
+                        checkmarkColor = _48B2E7,
+                        uncheckedColor = Color.Gray,
+                        checkedColor = Color.Transparent
+                    )
                 )
                 Text(
                     text = "Даю согласие на обработку персональных данных",
