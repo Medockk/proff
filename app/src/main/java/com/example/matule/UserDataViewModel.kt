@@ -10,15 +10,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 
 class UserDataViewModel : ViewModel() {
-    val _name = mutableStateOf("nnnnn")
+    private val _name = mutableStateOf("nnnnn")
     val name = _name
-    var _email= mutableStateOf("eeeee")
+    private var _email= mutableStateOf("eeeee")
     val email = _email
-    var _password = mutableStateOf("ppppp")
+    private var _password = mutableStateOf("ppppp")
     val password = _password
-
-    var latitude = 0.0
-    var longitude = 0.0
 
     val emailText = mutableStateOf("")
     val passwordText = mutableStateOf("")
