@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.postgrest.kt)
     implementation(libs.auth.kt)
     implementation(libs.realtime.kt)
+    implementation("io.github.jan-tennert.supabase:auth-kt:3.0.2")
     implementation("io.ktor:ktor-client-cio:3.0.1")
     implementation ("io.github.jan-tennert.supabase:storage-kt:3.0.1")
     implementation(platform("io.github.jan-tennert.supabase:bom:2.5.4"))

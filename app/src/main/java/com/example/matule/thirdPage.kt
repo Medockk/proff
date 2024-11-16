@@ -1,6 +1,7 @@
 package com.example.matule
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -80,6 +82,7 @@ import com.example.matule.ui.theme._D9D9D966_40
 import com.example.matule.ui.theme._DFEFFF
 import com.example.matule.ui.theme._F7F7F9
 import com.example.matule.ui.theme._F87265
+import kotlinx.coroutines.launch
 import ru.sulgik.mapkit.compose.Placemark
 import ru.sulgik.mapkit.compose.YandexMap
 import ru.sulgik.mapkit.compose.bindToLifecycleOwner
@@ -487,7 +490,7 @@ fun BackGround() {
 fun TopBar(
     painter: Painter, text: String, painter2: Painter? = null,
     icon: Int? = null, firstPage: Boolean = false, cartScreen: Boolean = false,
-    secondText: String? = null, backOcClick: (() -> Unit)? = null
+    secondText: String? = null, backOcClick: (() -> Unit)? = null, context: Context? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -541,10 +544,24 @@ fun TopBar(
                 }
             )
         )
+        val supa = SupaBase()
+        val coroutineScope = rememberCoroutineScope()
         if (secondText != null) {
             Text(
                 text = secondText,
-                style = Raleway70015_48B2E7
+                style = Raleway70015_48B2E7,
+                modifier = Modifier.clickable {
+                    coroutineScope.launch {
+                        coroutineScope.launch {
+                            supa.storage(
+                                iconName = "icon",
+                                img = null,
+                                context = context!!,
+                                coroutineScope = coroutineScope
+                            )
+                        }
+                    }
+                }
             )
         }
         if (painter2 != null) {

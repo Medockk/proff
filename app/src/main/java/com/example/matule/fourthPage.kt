@@ -1,11 +1,17 @@
 package com.example.matule
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,11 +33,17 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +56,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -59,6 +72,7 @@ import com.example.matule.ui.theme.Raleway60020_2B2B2B
 import com.example.matule.ui.theme.Raleway70020White
 import com.example.matule.ui.theme._48B2E7
 import com.example.matule.ui.theme._F7F7F9
+import kotlinx.coroutines.launch
 
 val storyList = listOf(
     "New Shoes",
@@ -103,18 +117,45 @@ fun SideMenu() {
 
 @Composable
 fun ProfileImage(showText: Boolean = true, style: TextStyle,
-                 center: Boolean = false) {
+                 center: Boolean = false, img: MutableState<ByteArray?>? = null,
+                 storageBitMap: Bitmap? = null, context: Context? = null) {
+    val supa = SupaBase()
+    val coroutineScope = rememberCoroutineScope()
     Box {
         Column(horizontalAlignment = if (center){Alignment.CenterHorizontally}
         else{Alignment.Start}) {
-            Image(
-                painter = painterResource(R.drawable.profile_img),
-                contentDescription = null,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .size(96.dp),
-                contentScale = ContentScale.Crop
-            )
+            if (img != null) { //при выборе изображения
+                if (img.value != null){
+                    Image(
+                        bitmap = supa.imageToBitMap(img.value).asImageBitmap(),
+                        contentDescription = "profile image",
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(96.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }else{
+                if (storageBitMap != null){ //загрузка с бд иконки
+                    Image(
+                        bitmap = storageBitMap.asImageBitmap(),
+                        contentDescription = "icon",
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(96.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }else{ //вариант по умолчанию
+                    Image(
+                        painter = painterResource(R.drawable.profile_img),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(96.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
             Text(
                 text = if (showText){
                     val name = MutableStateOf.getMutableStateOf(name)
@@ -281,12 +322,19 @@ fun EditProfile(homeOnClick: () -> Unit){
     }
 }
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun Profile(){
+fun Profile(context: Context){
     val heightScreen = LocalConfiguration.current.screenHeightDp / 20
     var bitmap: Bitmap? = null
     var width = remember { mutableStateOf(0.dp) }
     var height = remember { mutableStateOf(0.dp) }
+    var bytes = remember {
+        mutableStateOf<ByteArray?>(null)
+    }
+    val coroutineScope = rememberCoroutineScope()
+    val supa = SupaBase()
+    val launcher = LoadImage(bytes)
     Column(
         verticalArrangement = Arrangement.SpaceAround
     ) {
@@ -297,7 +345,8 @@ fun Profile(){
                 painter = painterResource(R.drawable.eye),
                 text = "Профиль",
                 icon = 1,
-                secondText = "Готово"
+                secondText = "Готово",
+                context = context
             )
         }
         Column(modifier = Modifier.fillMaxSize(),
@@ -305,10 +354,30 @@ fun Profile(){
             verticalArrangement = Arrangement.SpaceAround
         ) {
             Column {
-                ProfileImage(style = Raleway60020_2B2B2B, center = true)
+                if (bytes.value != null){//выбор изображения
+                    ProfileImage(style = Raleway60020_2B2B2B, center = true,
+                        img = bytes, context = context)
+                }else{//если не выбрали изображения
+                    var bitmap1: MutableState<Bitmap?> = remember { mutableStateOf(null) }
+                    val cor = remember { mutableStateOf(true) }
+                    if (cor.value){ //загрузка с бд
+                        coroutineScope.launch {
+                            bitmap1.value = supa.getImageFromStorage()
+                            cor.value = false
+                        }
+                    }else{ //выставление иконки с бд
+                        ProfileImage(style = Raleway60020_2B2B2B, center = true,
+                            storageBitMap = storageIcon()
+                        )
+                    }
+                }
                 Text(
                     text = "Изменить фото профиля",
-                    style = Raleway60012_48B2E7
+                    style = Raleway60012_48B2E7,
+                    modifier = Modifier.clickable {
+                        bytes.value = null
+                        launcher.launch("image/*")
+                    }
                 )
             }
             Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 15.dp)
@@ -363,8 +432,36 @@ fun Profile(){
         }
     }
 }
+lateinit var icon: Bitmap
+fun storageIcon(bitmap: Bitmap? = null): Bitmap?{
+    if (bitmap != null){
+        icon = bitmap
+        return null
+    }else{
+        return icon
+    }
+}
 
-@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun LoadImage(bytes: MutableState<ByteArray?>) : ManagedActivityResultLauncher<String, Uri?> {
+    val supa = SupaBase()
+    val context = LocalContext.current
+
+    val coroutineScope = rememberCoroutineScope()
+
+    val launcher = rememberLauncherForActivityResult(
+        contract =
+        ActivityResultContracts.GetContent()
+    ) { result ->
+        if (result != null){
+            val item = context.contentResolver.openInputStream(result)
+            bytes.value = item?.readBytes()
+            item?.close()
+        }
+    }
+    return launcher
+}
+
 @Composable
 fun Search(){
     BackGround()
