@@ -476,10 +476,7 @@ fun storageIcon(bitmap: Bitmap? = null): Bitmap? {
 
 @Composable
 fun LoadImage(bytes: MutableState<ByteArray?>): ManagedActivityResultLauncher<String, Uri?> {
-    val supa = SupaBase()
     val context = LocalContext.current
-
-    val coroutineScope = rememberCoroutineScope()
 
     val launcher = rememberLauncherForActivityResult(
         contract =

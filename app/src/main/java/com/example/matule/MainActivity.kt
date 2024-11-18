@@ -267,35 +267,63 @@ class MainActivity : ComponentActivity() {
 //            }
             val coroutineScope = rememberCoroutineScope()
             var data: Users? = null
-            NavHost(navController, startDestination = Navigation.RegisterAccount.route){
-                composable(Navigation.RegisterAccount.route){
-                    RegisterAccount(
-                        onClick = {
-                            coroutineScope.launch {
-                                supa.insertUserData(
-                                    name = userData.name.value,
-                                    email = userData.email.value,
-                                    password = userData.password.value,
-                                    context = this@MainActivity
-                                )
-                                data = supa.getData(
-                                    password = userData.password.value,
-                                    email = userData.email.value,
-                                    context = this@MainActivity
-                                )
-                            }
-                            navController.navigate(Navigation.Profile.route)
-                        }
+//            NavHost(navController, startDestination = Navigation.RegisterAccount.route){
+//                composable(Navigation.RegisterAccount.route){
+//                    RegisterAccount(
+//                        onClick = {
+//                            coroutineScope.launch {
+//                                supa.insertUserData(
+//                                    name = userData.name.value,
+//                                    email = userData.email.value,
+//                                    password = userData.password.value,
+//                                    context = this@MainActivity
+//                                )
+//                                data = supa.getData(
+//                                    password = userData.password.value,
+//                                    email = userData.email.value,
+//                                    context = this@MainActivity
+//                                )
+//                            }
+//                            navController.navigate(Navigation.Profile.route)
+//                        }
+//                    )
+//                }
+//                composable(Navigation.Profile.route){
+//                    Profile(this@MainActivity, data = data)
+//                }
+//            }
+            NavHost(navController, startDestination = "t"){
+                composable("t"){
+                    t {
+                        navController.navigate(Navigation.YandexMapKit.route)
+                    }
+                }
+                composable(Navigation.YandexMapKit.route){
+                    YandexMapKit(
+                        PointObj.myLatitude,
+                        PointObj.myLongitude,
+                        cameraPosition,
+                        this@MainActivity
                     )
                 }
-                composable(Navigation.Profile.route){
-                    Profile(this@MainActivity, data = data)
-                }
             }
+
 
             //if your gps off
             locationManager = getSystemService(LOCATION_SERVICE) as android.location.LocationManager
             pointObj.requestLocationPermission()
+        }
+    }
+
+    @Composable
+    fun t(o: () -> Unit) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ){
+            Button(
+                {o()}
+            ) { }
         }
     }
     val supa = SupaBase()

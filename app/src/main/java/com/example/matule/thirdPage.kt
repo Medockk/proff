@@ -2,6 +2,8 @@ package com.example.matule
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.se.omapi.Session
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,6 +47,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -83,16 +86,30 @@ import com.example.matule.ui.theme._D9D9D966_40
 import com.example.matule.ui.theme._DFEFFF
 import com.example.matule.ui.theme._F7F7F9
 import com.example.matule.ui.theme._F87265
+import com.yandex.mapkit.map.PlacemarkMapObject
+import io.ktor.util.reflect.instanceOf
 import kotlinx.coroutines.launch
+import ru.sulgik.mapkit.compose.MapEffect
 import ru.sulgik.mapkit.compose.Placemark
+import ru.sulgik.mapkit.compose.PlacemarkState
 import ru.sulgik.mapkit.compose.YandexMap
 import ru.sulgik.mapkit.compose.bindToLifecycleOwner
 import ru.sulgik.mapkit.compose.rememberAndInitializeMapKit
 import ru.sulgik.mapkit.compose.rememberCameraPositionState
 import ru.sulgik.mapkit.compose.rememberPlacemarkState
+import ru.sulgik.mapkit.geometry.Geometry
 import ru.sulgik.mapkit.geometry.Point
+import ru.sulgik.mapkit.geometry.Polyline
+import ru.sulgik.mapkit.geometry.toCommon
+import ru.sulgik.mapkit.geometry.toGeometry
+import ru.sulgik.mapkit.geometry.toNative
 import ru.sulgik.mapkit.map.CameraPosition
 import ru.sulgik.mapkit.map.ImageProvider
+import ru.sulgik.mapkit.map.InputListener
+import ru.sulgik.mapkit.map.Map
+import ru.sulgik.mapkit.map.MapObject
+import ru.sulgik.mapkit.map.MapObjectTapListener
+import ru.sulgik.mapkit.map.PolylineMapObject
 import ru.sulgik.mapkit.map.fromResource
 
 @Composable
@@ -1534,12 +1551,6 @@ fun EmailOrName(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun t() {
-
-}
-
 var first = true
 
 @Composable
@@ -1629,6 +1640,7 @@ fun YandexMapKit(
     latitude: MutableState<Double>, longitude: MutableState<Double>,
     cameraPosition: CameraPosition? = null, context: Context
 ) {
+    var mapLongTapPoint = remember { mutableStateOf(Point(0.0, 0.0)) }
     var startPosition = CameraPosition(
         target = Point(latitude.value, longitude.value),
         zoom = 16f,
@@ -1639,18 +1651,53 @@ fun YandexMapKit(
         startPosition = cameraPosition
         first = false
     }
+    var pol: PolylineMapObject? = null
+    var place: ru.sulgik.mapkit.map.PlacemarkMapObject? = null
     rememberAndInitializeMapKit().bindToLifecycleOwner()
     val placemarkGeometry = Point(latitude.value, longitude.value)
     val cameraPositionState = rememberCameraPositionState { position = startPosition }
+    val show = remember { mutableStateOf(false) }
     YandexMap(
         cameraPositionState = cameraPositionState,
         modifier = Modifier.fillMaxSize()
     ) {
-        val img = ImageProvider.fromResource(context = context, R.drawable.point)
+        val i = ImageProvider.fromResource(context = context, R.drawable.point)
+        val img = ImageProvider.fromResource(context, R.drawable.my_location)
         Placemark(
             state = rememberPlacemarkState(placemarkGeometry),
             icon = img
         )
+        Placemark(
+            state = rememberPlacemarkState(mapLongTapPoint.value),
+            icon = i,
+            draggable = true,
+            onTap = { point ->
+                true
+            }
+        )
+
+        val inputListener = object : InputListener() {
+            override fun onMapTap(map: Map, point: Point) {
+                show.value = true
+            }
+
+            override fun onMapLongTap(map: Map, point: Point) {
+                if (pol != null) {
+                    map.mapObjects.remove(pol as MapObject)
+                }
+                if (place != null) {
+                    map.mapObjects.remove(place as MapObject)
+                }
+                mapLongTapPoint.value = point
+                var l = mutableListOf(Point(latitude.value, longitude.value), mapLongTapPoint.value)
+                l[1] = point
+                var pp = Polyline(l)
+                pol = map.mapObjects.addPolyline(pp)
+            }
+        }
+        MapEffect { map: Map ->
+            map.addInputListener(inputListener)
+        }
     }
 }
 
