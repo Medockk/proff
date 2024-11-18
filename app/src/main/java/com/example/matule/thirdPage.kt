@@ -67,6 +67,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.matule.ui.theme.Raleway70015_48B2E7
 import com.example.matule.ui.theme.Raleway70020White
 import com.example.matule.ui.theme._000000
@@ -118,8 +119,10 @@ fun Home(favoriteOnClick: (() -> Unit), myCartOnClick: (() -> Unit)) {
         )
         TextAll("Акции")
         CardAction()
-        BottomVector(true, favoriteOnClick = favoriteOnClick,
-            myCartOnClick = myCartOnClick)
+        BottomVector(
+            true, favoriteOnClick = favoriteOnClick,
+            myCartOnClick = myCartOnClick
+        )
     }
 }
 
@@ -490,7 +493,8 @@ fun BackGround() {
 fun TopBar(
     painter: Painter, text: String, painter2: Painter? = null,
     icon: Int? = null, firstPage: Boolean = false, cartScreen: Boolean = false,
-    secondText: String? = null, backOcClick: (() -> Unit)? = null, context: Context? = null
+    secondText: String? = null, backOcClick: (() -> Unit)? = null, context: Context? = null,
+    data: Users? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -546,20 +550,28 @@ fun TopBar(
         )
         val supa = SupaBase()
         val coroutineScope = rememberCoroutineScope()
+        val mutableState = MutableStateOf()
+        val name = mutableState.getMutableStateOf(name)!!.value
+        val email = mutableState.getMutableStateOf(email)!!.value
+        val password = mutableState.getMutableStateOf(password)!!.value
         if (secondText != null) {
             Text(
                 text = secondText,
                 style = Raleway70015_48B2E7,
                 modifier = Modifier.clickable {
                     coroutineScope.launch {
-                        coroutineScope.launch {
-                            supa.storage(
-                                iconName = "icon",
-                                img = null,
-                                context = context!!,
-                                coroutineScope = coroutineScope
-                            )
-                        }
+                        supa.storage(
+                            iconName = "icon",
+                            img = null,
+                            context = context!!
+                        )
+                        supa.updateUserData(
+                            name = name,
+                            email = email,
+                            password = password,
+                            context = context,
+                            data = data!!
+                        )
                     }
                 }
             )
@@ -589,7 +601,7 @@ fun TopBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarSearch(painter: Painter? = null) {
+fun TopBarSearch(painter: Painter? = null, vm: MutableStateOf = viewModel()) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -625,9 +637,12 @@ fun TopBarSearch(painter: Painter? = null) {
                                 modifier = Modifier.size(24.dp)
                             )
                         }
-                        val search = MutableStateOf.getMutableStateOf(search)
-                        val expanded = remember { mutableStateOf(false
-                        ) }
+                        val search = vm.getMutableStateOf(search)
+                        val expanded = remember {
+                            mutableStateOf(
+                                false
+                            )
+                        }
 //                        SearchBar(
 //                            expanded = expanded.value,
 //                            onExpandedChange = {
@@ -727,9 +742,15 @@ fun TopBarSearch(painter: Painter? = null) {
 }
 
 var home = true
+
 @Composable
-fun BottomVector(selectedHomeIcon: Boolean, favoriteOnClick: (() -> Unit)? = null, homeOnClick: (() -> Unit)? = null,
-                 ordersOnClick: (() -> Unit)? = null, myCartOnClick: (() -> Unit)? = null) {
+fun BottomVector(
+    selectedHomeIcon: Boolean,
+    favoriteOnClick: (() -> Unit)? = null,
+    homeOnClick: (() -> Unit)? = null,
+    ordersOnClick: (() -> Unit)? = null,
+    myCartOnClick: (() -> Unit)? = null
+) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.BottomCenter
@@ -777,7 +798,7 @@ fun BottomVector(selectedHomeIcon: Boolean, favoriteOnClick: (() -> Unit)? = nul
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton({
-                        if (!home){
+                        if (!home) {
                             homeOnClick?.invoke()
                             home = true
                         }
@@ -795,7 +816,7 @@ fun BottomVector(selectedHomeIcon: Boolean, favoriteOnClick: (() -> Unit)? = nul
                     }
                     Spacer(modifier = Modifier.size(25.dp))
                     IconButton({
-                        if (home){
+                        if (home) {
                             favoriteOnClick?.invoke()
                             home = false
                         }
@@ -1299,7 +1320,7 @@ fun ContactInformation(onClick: () -> Unit) {
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.SpaceAround
     ) {
-        Box{
+        Box {
             Column {
                 Text(
                     text = "Контактная информация",
@@ -1323,7 +1344,7 @@ fun ContactInformation(onClick: () -> Unit) {
                 )
             }
         }
-        Box{
+        Box {
             OrderAddress(onClick = onClick)
         }
         PayMethod()
@@ -1561,7 +1582,7 @@ fun OrderAddress(onClick: () -> Unit) {
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .padding(vertical = 12.dp)
-            ){
+            ) {
                 Image(
                     painter = painterResource(R.drawable.map_btn),
                     contentDescription = "",
@@ -1573,7 +1594,10 @@ fun OrderAddress(onClick: () -> Unit) {
                             onClick()
                         },
                     contentScale = ContentScale.Crop,
-                    colorFilter = ColorFilter.tint(color = _000000_33, blendMode = BlendMode.Darken),
+                    colorFilter = ColorFilter.tint(
+                        color = _000000_33,
+                        blendMode = BlendMode.Darken
+                    ),
                 )
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -1587,7 +1611,7 @@ fun OrderAddress(onClick: () -> Unit) {
                             .background(color = _0D6EFD, shape = CircleShape)
                             .size(40.dp),
                         contentAlignment = Alignment.Center
-                    ){
+                    ) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = "",
@@ -1599,16 +1623,19 @@ fun OrderAddress(onClick: () -> Unit) {
         }
     }
 }
+
 @Composable
-fun YandexMapKit(latitude: MutableState<Double>, longitude: MutableState<Double>,
-                 cameraPosition: CameraPosition? = null, context: Context) {
+fun YandexMapKit(
+    latitude: MutableState<Double>, longitude: MutableState<Double>,
+    cameraPosition: CameraPosition? = null, context: Context
+) {
     var startPosition = CameraPosition(
         target = Point(latitude.value, longitude.value),
         zoom = 16f,
         azimuth = 0f,
         tilt = 0f
     )
-    if (first && cameraPosition != null){
+    if (first && cameraPosition != null) {
         startPosition = cameraPosition
         first = false
     }
@@ -1618,8 +1645,8 @@ fun YandexMapKit(latitude: MutableState<Double>, longitude: MutableState<Double>
     YandexMap(
         cameraPositionState = cameraPositionState,
         modifier = Modifier.fillMaxSize()
-    ){
-        val img = ImageProvider.fromResource(context = context,R.drawable.point)
+    ) {
+        val img = ImageProvider.fromResource(context = context, R.drawable.point)
         Placemark(
             state = rememberPlacemarkState(placemarkGeometry),
             icon = img

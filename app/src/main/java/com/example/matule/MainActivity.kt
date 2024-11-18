@@ -265,7 +265,33 @@ class MainActivity : ComponentActivity() {
 //                    )
 //                }
 //            }
-            Profile(this)
+            val coroutineScope = rememberCoroutineScope()
+            var data: Users? = null
+            NavHost(navController, startDestination = Navigation.RegisterAccount.route){
+                composable(Navigation.RegisterAccount.route){
+                    RegisterAccount(
+                        onClick = {
+                            coroutineScope.launch {
+                                supa.insertUserData(
+                                    name = userData.name.value,
+                                    email = userData.email.value,
+                                    password = userData.password.value,
+                                    context = this@MainActivity
+                                )
+                                data = supa.getData(
+                                    password = userData.password.value,
+                                    email = userData.email.value,
+                                    context = this@MainActivity
+                                )
+                            }
+                            navController.navigate(Navigation.Profile.route)
+                        }
+                    )
+                }
+                composable(Navigation.Profile.route){
+                    Profile(this@MainActivity, data = data)
+                }
+            }
 
             //if your gps off
             locationManager = getSystemService(LOCATION_SERVICE) as android.location.LocationManager
@@ -274,6 +300,7 @@ class MainActivity : ComponentActivity() {
     }
     val supa = SupaBase()
     var first = true
+    private lateinit var o: Users
 
     override fun onResume() {
         super.onResume()
@@ -334,7 +361,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-    @OptIn(SupabaseInternal::class)
     @Preview(showBackground = true, showSystemUi = true)
     @Composable
     private fun Main(vm: UserDataViewModel = viewModel()) {
@@ -401,25 +427,27 @@ class MainActivity : ComponentActivity() {
                 Row {
                     Button(
                         onClick = {
-                            supa.signUpWithEmail(
-                                name = name1.value,
-                                email1 = email1.value,
-                                password1 = password1.value,
-                                context = this@MainActivity,
-                                coroutineScope = coroutineScope
-                            )
+                            coroutineScope.launch {
+                                supa.signUpWithEmail(
+                                    name = name1.value,
+                                    email1 = email1.value,
+                                    password1 = password1.value,
+                                    context = this@MainActivity
+                                )
+                            }
                         },
                     ) {
                         Text(text = "sign up!", fontSize = 20.sp)
                     }
                     Button(
                         onClick = {
-                            supa.signInWithEmail(
-                                email1 = email1.value,
-                                password1 = password1.value,
-                                context = this@MainActivity,
-                                coroutineScope = coroutineScope
-                            )
+                            coroutineScope.launch {
+                                supa.signInWithEmail(
+                                    email1 = email1.value,
+                                    password1 = password1.value,
+                                    context = this@MainActivity
+                                )
+                            }
                         },
                     ) {
                         Text(text = "sign in!", fontSize = 20.sp)
@@ -437,6 +465,94 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Text(text = "sign out!", fontSize = 20.sp)
                     }
+                }
+            }
+        }
+    }
+
+    var go = MutableStateOf.go()
+
+    @Composable
+    fun f(onClick: () -> Unit){
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ){
+            Column {
+                OutlinedTextField(
+                    value = go.name.value,
+                    onValueChange = {text ->
+                        go.name.value = text
+                    },
+                    label = {
+                        Text("name")
+                    }
+                )
+                OutlinedTextField(
+                    value = go.email.value,
+                    onValueChange = {text ->
+                        go.email.value = text
+                    },
+                    label = {
+                        Text("email")
+                    }
+                )
+                OutlinedTextField(
+                    value = go.pass.value,
+                    onValueChange = {text ->
+                        go.pass.value = text
+                    },
+                    label = {
+                        Text("password")
+                    }
+                )
+                Button(
+                    {
+                        Toast.makeText(this@MainActivity, go.pass.value, Toast.LENGTH_SHORT).show()
+                    onClick()
+                }) {
+                    Text("f")
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun s(o: () -> Unit){
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ){
+            Column {
+                OutlinedTextField(
+                    value = go.name.value,
+                    onValueChange = {
+                        go.name.value = it
+                    },
+                    label = {
+                        Text("name")
+                    }
+                )
+                OutlinedTextField(
+                    value = go.email.value,
+                    onValueChange = {
+                        go.email.value = it
+                    },
+                    label = {
+                        Text("email")
+                    }
+                )
+                OutlinedTextField(
+                    value = go.pass.value,
+                    onValueChange = {
+                        go.pass.value = it
+                    },
+                    label = {
+                        Text("pass")
+                    }
+                )
+                Button({o()}) {
+                    Text("s")
                 }
             }
         }

@@ -21,7 +21,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,7 +44,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -63,11 +61,13 @@ const val familia = "familia"
 const val address = "address"
 const val phone = "phone"
 const val search = "search"
-const val state1 = "state"
+var userData = UserDataViewModel.UserData()
 
 @Composable
-fun SignIn(onClick: () -> Unit, viewModel: UserDataViewModel = viewModel(),
-           registerAccountOnClick: (() -> Unit)? = null) {
+fun SignIn(
+    onClick: () -> Unit, viewModel: MutableStateOf = viewModel(),
+    registerAccountOnClick: (() -> Unit)? = null
+) {
     Column {
         SetIconScreen()
         Column(
@@ -105,14 +105,14 @@ fun SignIn(onClick: () -> Unit, viewModel: UserDataViewModel = viewModel(),
                                     SetTextField(
                                         text = "Email",
                                         placeholder = "xyz@gmail.com",
-                                        mutableState = viewModel.emailText,
+                                        mutableState = viewModel.getMutableStateOf(email)!!,
                                         keyboardType = KeyboardType.Email,
                                         size = 50
                                     )
                                     SetTextField(
                                         text = "Пароль",
                                         placeholder = "******",
-                                        mutableState = viewModel.passwordText,
+                                        mutableState = viewModel.getMutableStateOf(password)!!,
                                         keyboardType = KeyboardType.Password,
                                         painter = painterResource(R.drawable.eye),
                                         size = 48
@@ -156,8 +156,8 @@ fun Recover(text: String = "Восстановить") {
 }
 
 @Composable
-fun SetButton(s: String, mutableState: MutableState<Boolean>? = null, onClick: () -> Unit,
-              viewModel: UserDataViewModel = viewModel()
+fun SetButton(
+    s: String, mutableState: MutableState<Boolean>? = null, onClick: () -> Unit
 ) {
     if (mutableState != null) {
         if (mutableState.value) {
@@ -169,7 +169,7 @@ fun SetButton(s: String, mutableState: MutableState<Boolean>? = null, onClick: (
             if (mutableState != null) {
                 mutableState.value = true
             } else {
-                if (viewModel.emailText.value != "" && viewModel.passwordText.value != ""){
+                if (userData.email.value != "" && userData.password.value != "") {
                     onClick()
                 }
             }
@@ -246,8 +246,9 @@ fun SetAlertDialog(mutableState: MutableState<Boolean>, onClick: () -> Unit) {
 }
 
 @Composable
-fun SetBottomText(firstText: String, secondText: String,
-                  registerAccountOnClick: (() -> Unit)? = null,
+fun SetBottomText(
+    firstText: String, secondText: String,
+    registerAccountOnClick: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -269,7 +270,7 @@ fun SetBottomText(firstText: String, secondText: String,
             onClick = {
                 registerAccountOnClick?.invoke()
             }
-        ){
+        ) {
             Text(
                 text = secondText,
                 style = TextStyle(
@@ -284,7 +285,9 @@ fun SetBottomText(firstText: String, secondText: String,
 }
 
 @Composable
-fun RegisterAccount(onClick: () -> Unit, signInOnClick: (() -> Unit)?=null) {
+fun RegisterAccount(
+    onClick: () -> Unit, signInOnClick: (() -> Unit)? = null
+) {
     val checked = remember { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.SpaceAround) {
         SetIconScreen()
@@ -299,14 +302,10 @@ fun RegisterAccount(onClick: () -> Unit, signInOnClick: (() -> Unit)?=null) {
                 .fillMaxSize()
                 .padding(top = 25.dp)
         ) {
-            val nameText = MutableStateOf.getMutableStateOf(name)
-            val emailText = MutableStateOf.getMutableStateOf(email)
-            val passwordText = MutableStateOf.getMutableStateOf(password)
-            if (nameText != null && emailText != null && passwordText != null) {
-                RegisterData(text = "Ваше имя", nameText)
-                RegisterData(text = "Email", emailText)
-                RegisterData(text = "Пароль", passwordText)
-            }
+            RegisterData(text = "Ваше имя", userData.name)
+            RegisterData(text = "Email", userData.email)
+            RegisterData(text = "Пароль", userData.password)
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -350,7 +349,8 @@ fun RegisterData(
     text: String,
     mutableState: MutableState<String>,
     blackText: Boolean = false,
-    imageVector: ImageVector? = null
+    imageVector: ImageVector? = null,
+    data: Users? = null
 ) {
     Column {
         Box(
@@ -366,7 +366,8 @@ fun RegisterData(
                     keyboardType = KeyboardType.Text,
                     size = 50,
                     blackText = blackText,
-                    imageVector = imageVector
+                    imageVector = imageVector,
+                    data = data
                 )
             }
         }
@@ -413,7 +414,8 @@ fun Verification(onClick: () -> Unit) {
     val sixNum = remember { mutableStateOf("") }
     val timer = remember { mutableStateOf(30) }
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .clickable {
                 onClick()
             }
@@ -496,7 +498,8 @@ fun SetTextField(
     keyboardType: KeyboardType,
     size: Int = 0,
     blackText: Boolean = false,
-    imageVector: ImageVector? = null
+    imageVector: ImageVector? = null,
+    data: Users? = null
 ) {
     Box(modifier = Modifier.padding(top = 30.dp)) {
         Column {
@@ -518,7 +521,8 @@ fun SetTextField(
                 painter = painter,
                 keyboardType = keyboardType,
                 size = size,
-                imageVector = imageVector
+                imageVector = imageVector,
+                data = data
             )
         }
     }
@@ -531,7 +535,8 @@ fun TextFieldForNameOrECT(
     painter: Painter? = null,
     keyboardType: KeyboardType,
     size: Int = 0,
-    imageVector: ImageVector? = null
+    imageVector: ImageVector? = null,
+    data: Users? = null
 ) {
     Box {
         TextField(
@@ -568,7 +573,9 @@ fun TextFieldForNameOrECT(
                                 color = _6A6A6A
                             )
                         )
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = {
+
+                        }) {
                             Image(
                                 painter = painter,
                                 contentDescription = "showPassword",
@@ -601,7 +608,9 @@ fun TextFieldForNameOrECT(
                         color = _6A6A6A
                     )
                 )
-                IconButton(onClick = {}) {
+                IconButton(onClick = {
+
+                }) {
                     Icon(
                         imageVector = imageVector,
                         contentDescription = "showPassword",

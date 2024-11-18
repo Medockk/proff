@@ -50,6 +50,7 @@ import kotlin.random.Random
 private const val postgrest = "Users"
 private const val postEmail = "email"
 private const val postPassword = "password"
+private const val postName = "name"
 private const val token = "sbp_3700007c4c2bc66715d549b66647255acfe97c9a"
 private var accessToken: String? = ""
 public const val myEmail = "andreev.arsenij2020@gmail.com"
@@ -73,215 +74,195 @@ class SupaBase {
         }
     }
 
-    fun insertUserData(
+    suspend fun insertUserData(
         name: String,
         email: String,
         password: String,
-        context: Context,
-        lifecycleScope: CoroutineScope
+        context: Context
     ) {
         try {
-            lifecycleScope.launch {
-                val client = createSupabaseClient()
-                val insertNewData = Users(
-                    name = name, email = email, password = password
-                )
-                client.from(postgrest).insert(insertNewData)
-            }
+            val client = createSupabaseClient()
+            val insertNewData = Users(
+                name = name, email = email, password = password
+            )
+            client.from(postgrest).insert(insertNewData)
+
         } catch (ex: Exception) {
             Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun checkUsers(
+    suspend fun checkUsers(
         email: String,
         password: String,
-        context: Context,
-        lifecycleScope: CoroutineScope
+        context: Context
     ) {
         try {
-            lifecycleScope.launch {
-                val client = createSupabaseClient()
-                val andCheckedUsers =
+            val client = createSupabaseClient()
+            val andCheckedUsers =
+                client.from(postgrest)
+                    .select(columns = Columns.list("$postEmail, $postPassword")) {
+                        filter {
+                            and {
+                                eq(postEmail, email)
+                                eq(postPassword, password)
+                            }
+                        }
+                    }.decodeList<Users>()
+            if (andCheckedUsers.isEmpty()) {
+                val checkedUsers =
                     client.from(postgrest)
                         .select(columns = Columns.list("$postEmail, $postPassword")) {
                             filter {
-                                and {
-                                    eq(postEmail, email)
-                                    eq(postPassword, password)
-                                }
+                                eq(postEmail, email)
                             }
                         }.decodeList<Users>()
-                if (andCheckedUsers.isEmpty()) {
-                    val checkedUsers =
-                        client.from(postgrest)
-                            .select(columns = Columns.list("$postEmail, $postPassword")) {
-                                filter {
-                                    eq(postEmail, email)
-                                }
-                            }.decodeList<Users>()
-                }
             }
+
         } catch (ex: Exception) {
             Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun updatePassword(
+    suspend fun updatePassword(
         password: String,
-        context: Context,
-        lifecycleScope: CoroutineScope
+        context: Context
     ) {
         try {
-            lifecycleScope.launch {
-                val client = createSupabaseClient()
-                val updatingData = Users(password = password)
-                client.from(postgrest).update(updatingData) {
-                    filter {
-                        eq(postPassword, "pppp")
-                    }
-                }
-            }
-        } catch (ex: Exception) {
-            Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    fun getData(
-        password: String,
-        email: String,
-        context: Context,
-        lifecycleScope: CoroutineScope
-    ) {
-        try {
-            lifecycleScope.launch {
-                val clientData = createSupabaseClient()
-                val data = clientData.from(postgrest).select() {
-                    filter {
-                        or {
-                            eq(postPassword, password)
-                            eq(postEmail, email)
-                        }
-                    }
-                }.decodeList<Users>()
-            }
-        } catch (ex: Exception) {
-            Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    fun sendOTP(
-        email: String,
-        context: Context,
-        coroutineScope: CoroutineScope
-    ) {
-        coroutineScope.launch {
             val client = createSupabaseClient()
-            try {
-                supabaseToken(context = context, coroutineScope = coroutineScope)
-                var captchaToken = ""
-                for (i in 0..5) {
-                    captchaToken += Random.nextInt(0, 10)
+            val updatingData = Users(password = password)
+            client.from(postgrest).update(updatingData) {
+                filter {
+                    eq(postPassword, "pppp")
                 }
-                client.auth.verifyEmailOtp(
-                    type = OtpType.Email.EMAIL,
-                    email = email,
-                    token = token ?: accessToken!!
-                )
-            } catch (ex: Exception) {
-                Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
             }
+
+        } catch (ex: Exception) {
+            Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun signUpWithEmail(
+    suspend fun getData(
+        password: String,
+        email: String,
+        context: Context
+    ): Users? {
+        try {
+            val clientData = createSupabaseClient()
+            val data = clientData.from(postgrest).select{
+                filter {
+                    or {
+                        eq(postPassword, password)
+                        eq(postEmail, email)
+                    }
+                }
+            }.decodeSingle<Users>()
+            return data
+        } catch (ex: Exception) {
+            Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
+            return null
+        }
+    }
+
+    suspend fun sendOTP(
+        email: String,
+        context: Context
+    ) {
+        val client = createSupabaseClient()
+        try {
+            supabaseToken(context = context)
+            var captchaToken = ""
+            for (i in 0..5) {
+                captchaToken += Random.nextInt(0, 10)
+            }
+            client.auth.verifyEmailOtp(
+                type = OtpType.Email.EMAIL,
+                email = email,
+                token = token ?: accessToken!!
+            )
+        } catch (ex: Exception) {
+            Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+    suspend fun signUpWithEmail(
         name: String,
         email1: String,
         password1: String,
-        context: MainActivity,
-        coroutineScope: CoroutineScope
+        context: MainActivity
     ) {
-        coroutineScope.launch {
-            val client = createSupabaseClient()
-            try {
-                val user = client.auth.signUpWith(Email) {
-                    email = email1
-                    password = password1
-                }
-                insertUserData(
-                    name = name,
-                    email = email1,
-                    password = password1,
-                    context = context,
-                    lifecycleScope = coroutineScope
-                )
-                Toast.makeText(context, "successful", Toast.LENGTH_SHORT).show()
-            } catch (ex: Exception) {
-                Toast.makeText(context, ex.message, Toast.LENGTH_SHORT).show()
+        val client = createSupabaseClient()
+        try {
+            val user = client.auth.signUpWith(Email) {
+                email = email1
+                password = password1
             }
+            insertUserData(
+                name = name,
+                email = email1,
+                password = password1,
+                context = context
+            )
+            Toast.makeText(context, "successful", Toast.LENGTH_SHORT).show()
+        } catch (ex: Exception) {
+            Toast.makeText(context, ex.message, Toast.LENGTH_SHORT).show()
         }
+
     }
 
-    fun signInWithEmail(
+    suspend fun signInWithEmail(
         email1: String,
         password1: String,
-        context: MainActivity,
-        coroutineScope: CoroutineScope
-    ) {
-        coroutineScope.launch {
-            try {
-                val client = createSupabaseClient()
-                client.auth.signInWith(Email) {
-                    email = email1
-                    password = password1
-                }
-                Toast.makeText(context, "successful", Toast.LENGTH_SHORT).show()
-            } catch (ex: Exception) {
-                Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    fun signOut(
-        context: MainActivity,
-        coroutineScope: CoroutineScope
-    ) {
-        coroutineScope.launch {
-            try {
-                val client = createSupabaseClient()
-                client.auth.signOut()
-                Toast.makeText(context, "successful", Toast.LENGTH_SHORT).show()
-            } catch (ex: Exception) {
-                Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    fun sendAResetPassword(
-        email: String,
-        context: Context,
-        coroutineScope: CoroutineScope
+        context: MainActivity
     ) {
         try {
-            coroutineScope.launch {
-                val client = createSupabaseClient()
-                client.auth.resetPasswordForEmail(email = email)
+            val client = createSupabaseClient()
+            client.auth.signInWith(Email) {
+                email = email1
+                password = password1
             }
+            Toast.makeText(context, "successful", Toast.LENGTH_SHORT).show()
+        } catch (ex: Exception) {
+            Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+    suspend fun signOut(
+        context: MainActivity
+    ) {
+        try {
+            val client = createSupabaseClient()
+            client.auth.signOut()
+            Toast.makeText(context, "successful", Toast.LENGTH_SHORT).show()
+        } catch (ex: Exception) {
+            Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+    suspend fun sendAResetPassword(
+        email: String,
+        context: Context
+    ) {
+        try {
+            val client = createSupabaseClient()
+            client.auth.resetPasswordForEmail(email = email)
+
             Toast.makeText(context, "successful", Toast.LENGTH_SHORT).show()
         } catch (ex: Exception) {
             Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun supabaseToken(
-        context: Context,
-        coroutineScope: CoroutineScope
+    suspend fun supabaseToken(
+        context: Context
     ) {
         try {
-            coroutineScope.launch {
-                val client = createSupabaseClient()
-                accessToken += client.auth.currentAccessTokenOrNull()
-            }
+            val client = createSupabaseClient()
+            accessToken += client.auth.currentAccessTokenOrNull()
+
         } catch (ex: Exception) {
             Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
         }
@@ -289,22 +270,20 @@ class SupaBase {
 
 
     //worked!!!!!
-    fun storage(
+    suspend fun storage(
         iconName: String,
         img: ByteArray?,
-        context: Context,
-        coroutineScope: CoroutineScope
+        context: Context
     ) {
         try {
-            coroutineScope.launch {
-                val client = createSupabaseClient()
-                val bucket = client.storage.from("avatars")
-                if (img != null){
-                    bucket.upload("$iconName.png", img) {
-                        upsert = true
-                    }
+            val client = createSupabaseClient()
+            val bucket = client.storage.from("avatars")
+            if (img != null) {
+                bucket.upload("$iconName.png", img) {
+                    upsert = true
                 }
             }
+
         } catch (ex: Exception) {
             Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
         }
@@ -327,27 +306,26 @@ class SupaBase {
     }
 
 
-
     fun imageToBitMap(byteArray: ByteArray?): Bitmap {
         return BitmapFactory.decodeByteArray(byteArray, 0, byteArray!!.size)
     }
 
     @OptIn(SupabaseExperimental::class)
     suspend fun realTime(context: MainActivity) {
-        try{
+        try {
             val client = createSupabaseClient()
             val flow = client.from(postgrest).selectAsFlow(Users::id)
-            flow.collect{
-                for (i in it){
+            flow.collect {
+                for (i in it) {
                     Log.e("supa", i.name)
                 }
             }
-        }catch (ex: Exception){
+        } catch (ex: Exception) {
             Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
         }
     }
 
-    suspend fun subscribeToChannel(context: Context, coroutineScope: CoroutineScope){
+    suspend fun subscribeToChannel(context: Context, coroutineScope: CoroutineScope) {
         val client = createSupabaseClient()
         val channel = client.realtime.channel("Users") {
             //optional config
@@ -356,16 +334,39 @@ class SupaBase {
 
 //Collect the flow
         changeFlow.onEach {
-            when(it) {
+            when (it) {
                 is PostgresAction.Delete -> Log.e("Deleted:", "${it.oldRecord}")
                 is PostgresAction.Insert -> Log.e("Inserted:", "${it.record}")
                 is PostgresAction.Select -> Log.e("Selected:", "${it.record}")
-                is PostgresAction.Update -> Log.e("Updated:","${it.oldRecord} with ${it.record}")
+                is PostgresAction.Update -> Log.e("Updated:", "${it.oldRecord} with ${it.record}")
             }
         }.launchIn(coroutineScope) // launch a new coroutine to collect the flow
 
         channel.subscribe()
 
+    }
+
+    suspend fun updateUserData(
+        name: String,
+        email: String,
+        password: String,
+        context: Context,
+        data: Users
+    ) {
+        try {
+            val client = createSupabaseClient()
+            client.from(postgrest).update(data) {
+                filter {
+                    and {
+                        eq(postName, name)
+                        eq(postEmail, email)
+                        eq(postPassword, password)
+                    }
+                }
+            }
+        } catch (ex: Exception) {
+            Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
+        }
     }
 }
 
