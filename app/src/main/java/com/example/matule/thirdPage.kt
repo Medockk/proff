@@ -1,14 +1,13 @@
 package com.example.matule
 
 import android.content.Context
-import android.content.SharedPreferences
-import android.se.omapi.Session
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,7 +46,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -66,10 +64,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.matule.ui.theme.Raleway70015_48B2E7
 import com.example.matule.ui.theme.Raleway70020White
@@ -86,37 +84,46 @@ import com.example.matule.ui.theme._D9D9D966_40
 import com.example.matule.ui.theme._DFEFFF
 import com.example.matule.ui.theme._F7F7F9
 import com.example.matule.ui.theme._F87265
-import com.yandex.mapkit.map.PlacemarkMapObject
-import io.ktor.util.reflect.instanceOf
+import com.yandex.mapkit.RequestPoint
+import com.yandex.mapkit.RequestPointType
+import com.yandex.mapkit.directions.DirectionsFactory
+import com.yandex.mapkit.directions.driving.DrivingOptions
+import com.yandex.mapkit.directions.driving.DrivingRoute
+import com.yandex.mapkit.directions.driving.DrivingRouterType
+import com.yandex.mapkit.directions.driving.DrivingSession.DrivingRouteListener
+import com.yandex.mapkit.directions.driving.VehicleOptions
+import com.yandex.mapkit.geometry.SubpolylineHelper
+import com.yandex.mapkit.transport.TransportFactory
+import com.yandex.mapkit.transport.masstransit.FilterVehicleTypes
+import com.yandex.mapkit.transport.masstransit.FitnessOptions
+import com.yandex.mapkit.transport.masstransit.Route
+import com.yandex.mapkit.transport.masstransit.RouteOptions
+import com.yandex.mapkit.transport.masstransit.SectionMetadata.SectionData
+import com.yandex.mapkit.transport.masstransit.Session.RouteListener
+import com.yandex.mapkit.transport.masstransit.TimeOptions
+import com.yandex.mapkit.transport.masstransit.TransitOptions
+import com.yandex.mapkit.transport.masstransit.Transport
+import com.yandex.runtime.Error
+import com.yandex.runtime.network.NetworkError
+import com.yandex.runtime.network.RemoteError
 import kotlinx.coroutines.launch
-import ru.sulgik.mapkit.compose.MapControllerEffect
 import ru.sulgik.mapkit.compose.MapEffect
 import ru.sulgik.mapkit.compose.Placemark
-import ru.sulgik.mapkit.compose.PlacemarkState
 import ru.sulgik.mapkit.compose.YandexMap
-import ru.sulgik.mapkit.compose.YandexMapsComposeExperimentalApi
 import ru.sulgik.mapkit.compose.bindToLifecycleOwner
 import ru.sulgik.mapkit.compose.rememberAndInitializeMapKit
 import ru.sulgik.mapkit.compose.rememberCameraPositionState
 import ru.sulgik.mapkit.compose.rememberPlacemarkState
-import ru.sulgik.mapkit.compose.rememberYandexMapController
-import ru.sulgik.mapkit.geometry.Geometry
 import ru.sulgik.mapkit.geometry.Point
-import ru.sulgik.mapkit.geometry.Polyline
-import ru.sulgik.mapkit.geometry.toCommon
-import ru.sulgik.mapkit.geometry.toGeometry
-import ru.sulgik.mapkit.geometry.toNative
 import ru.sulgik.mapkit.map.CameraPosition
-import ru.sulgik.mapkit.map.IconStyle
 import ru.sulgik.mapkit.map.ImageProvider
 import ru.sulgik.mapkit.map.InputListener
 import ru.sulgik.mapkit.map.Map
 import ru.sulgik.mapkit.map.MapObject
-import ru.sulgik.mapkit.map.MapObjectCollectionListener
 import ru.sulgik.mapkit.map.MapObjectDragListener
-import ru.sulgik.mapkit.map.MapObjectTapListener
 import ru.sulgik.mapkit.map.PolylineMapObject
 import ru.sulgik.mapkit.map.fromResource
+import ru.sulgik.mapkit.map.toCommon
 
 @Composable
 fun Home(favoriteOnClick: (() -> Unit), myCartOnClick: (() -> Unit)) {
@@ -1641,6 +1648,9 @@ fun OrderAddress(onClick: () -> Unit) {
     }
 }
 
+lateinit var ym: com.yandex.mapkit.map.Map
+lateinit var map1: Map
+
 @Composable
 fun YandexMapKit(
     latitude: MutableState<Double>, longitude: MutableState<Double>,
@@ -1651,9 +1661,10 @@ fun YandexMapKit(
     val lol = mutableListOf(Point(latitude.value, longitude.value), mapLongTapPoint.value)
     var pol: PolylineMapObject? = null
     var selectedPlace: ru.sulgik.mapkit.map.PlacemarkMapObject? = null
+    var secondSelectedPoint: ru.sulgik.mapkit.map.PlacemarkMapObject? = null
     var myPlace: ru.sulgik.mapkit.map.PlacemarkMapObject? = null
-    var map1: Map? = null
 
+    val systemDarkTheme = isSystemInDarkTheme()
     var startPosition = CameraPosition(
         target = Point(latitude.value, longitude.value),
         zoom = 16f,
@@ -1670,17 +1681,53 @@ fun YandexMapKit(
     val placemarkGeometry = Point(latitude.value, longitude.value)
     val cameraPositionState = rememberCameraPositionState { position = startPosition }
 
-    val i = ImageProvider.fromResource(context = context, R.drawable.point)
+    val selectedPoint = ImageProvider.fromResource(context = context, R.drawable.point)
+    val selectedPointWhite = ImageProvider.fromResource(context, R.drawable.point_white)
     val img = ImageProvider.fromResource(context, R.drawable.my_location)
 
-    val drag = object : MapObjectDragListener(){
+    val drag = object : MapObjectDragListener() {
         override fun onMapObjectDrag(mapObject: MapObject, point: Point) {
-            if (pol != null){
-                map1!!.mapObjects.remove(pol as MapObject)
-                lol[1] = point
-                val pp = Polyline(lol)
-                pol = map1!!.mapObjects.addPolyline(pp)
+            if (carPolylineMapObject != null) {
+                if (carPolylineMapObject!!.isValid) {
+                    try {
+                        map1.toNative().mapObjects.remove(carPolylineMapObject as com.yandex.mapkit.map.MapObject)
+                        mapLongTapPoint.value = point
+                        carRoute(
+                            com.yandex.mapkit.geometry.Point(latitude.value, longitude.value),
+                            com.yandex.mapkit.geometry.Point(
+                                mapLongTapPoint.value.latitude.value,
+                                mapLongTapPoint.value.longitude.value
+                            ),
+                            map1.toNative(),
+                            context
+                        )
+
+                    } catch (_: Exception) {
+
+                    }
+                }
             }
+            if (walkPolylineMapObject != null) {
+                if (walkPolylineMapObject!!.isValid) {
+                    try {
+                        map1.toNative().mapObjects.remove(walkPolylineMapObject as com.yandex.mapkit.map.MapObject)
+                        mapLongTapPoint.value = point
+                        walkRoute(
+                            com.yandex.mapkit.geometry.Point(latitude.value, longitude.value),
+                            com.yandex.mapkit.geometry.Point(
+                                mapLongTapPoint.value.latitude.value,
+                                mapLongTapPoint.value.longitude.value
+                            ),
+                            context,
+                            map1.toNative(),
+                            systemDarkTheme
+                        )
+
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+
         }
 
         override fun onMapObjectDragEnd(mapObject: MapObject) {
@@ -1693,51 +1740,308 @@ fun YandexMapKit(
 
     }
 
-    YandexMap(
-        cameraPositionState = cameraPositionState,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Placemark(
-            state = rememberPlacemarkState(Point(latitude.value, longitude.value)),
-            icon = img
-        )
-        val inputListener = object : InputListener() {
-            override fun onMapTap(map: Map, point: Point) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        YandexMap(
+            cameraPositionState = cameraPositionState,
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(0.8f)
+        ) {
+            Placemark(
+                state = rememberPlacemarkState(Point(latitude.value, longitude.value)),
+                icon = img
+            )
+            val inputListener = object : InputListener() {
+                override fun onMapTap(map: Map, point: Point) {
 
+                }
+
+                override fun onMapLongTap(map: Map, point: Point) {
+                    if (pol != null) {
+                        map.mapObjects.remove(pol as MapObject)
+                    }
+                    if (selectedPlace != null) {
+
+                        if (carPolylineMapObject != null) {
+                            if (carPolylineMapObject!!.isValid) {
+                                if (secondSelectedPoint != null){
+                                    map.mapObjects.remove(secondSelectedPoint as MapObject)
+                                }else{
+                                    Toast.makeText(context, "else branch", Toast.LENGTH_SHORT).show()
+                                }
+
+                                secondSelectedPoint = map.mapObjects.addPlacemark().apply {
+                                    geometry = point
+                                    if (systemDarkTheme) {
+                                        setIcon(selectedPointWhite)
+                                    } else {
+                                        setIcon(selectedPoint)
+                                    }
+                                    isDraggable = true
+                                    setDragListener(drag)
+                                }
+
+                            }
+                        } else if (walkPolylineMapObject != null) {
+                            if (walkPolylineMapObject!!.isValid) {
+                                if (secondSelectedPoint != null){
+                                    map.mapObjects.remove(secondSelectedPoint as MapObject)
+                                }
+                                secondSelectedPoint = map.mapObjects.addPlacemark().apply {
+                                    geometry = point
+                                    if (systemDarkTheme) {
+                                        setIcon(selectedPointWhite)
+                                    } else {
+                                        setIcon(selectedPoint)
+                                    }
+                                    isDraggable = true
+                                    setDragListener(drag)
+                                }
+                            }
+                        } else {
+                            map.mapObjects.remove(selectedPlace as MapObject)
+                        }
+                    }
+
+                    mapLongTapPoint.value = point
+                    r.geometry = point
+                    selectedPlace = map.mapObjects.addPlacemark().apply {
+                        geometry = point
+                        if (systemDarkTheme) {
+                            setIcon(selectedPointWhite)
+                        } else {
+                            setIcon(selectedPoint)
+                        }
+                        isDraggable = true
+                        setDragListener(drag)
+                    }
+//                    lol[1] = r.geometry
+//                    var pp = Polyline(lol)
+//                    pol = map.mapObjects.addPolyline(pp)
+                }
             }
-
-            override fun onMapLongTap(map: Map, point: Point) {
-                if (pol != null) {
-                    map.mapObjects.remove(pol as MapObject)
-                }
+            MapEffect { map: Map ->
+                map1 = map.toNative().toCommon()
+                ym = map.toNative()
+                map.addInputListener(inputListener)
                 if (selectedPlace != null) {
-                    map.mapObjects.remove(selectedPlace as MapObject)
+                    selectedPlace!!.setDragListener(drag)
                 }
-
-                mapLongTapPoint.value = point
-                r.geometry = point
-                selectedPlace = map.mapObjects.addPlacemark().apply {
-                    geometry = point
-                    setIcon(i)
-                    isDraggable = true
-                    setDragListener(drag)
+                myPlace = map.mapObjects.addPlacemark().apply {
+                    setIcon(img)
                 }
-                lol[1] = r.geometry
-                var pp = Polyline(lol)
-                pol = map.mapObjects.addPolyline(pp)
             }
         }
-        MapEffect { map: Map ->
-            map1 = map
-            map.addInputListener(inputListener)
-            if (selectedPlace != null){
-                selectedPlace!!.setDragListener(drag)
+        Row(
+            Modifier.padding(bottom = 20.dp)
+        ) {
+            Button({
+                buttonRemoveRoute()
+                carRoute(
+                    com.yandex.mapkit.geometry.Point(latitude.value, longitude.value),
+                    com.yandex.mapkit.geometry.Point(
+                        mapLongTapPoint.value.latitude.value,
+                        mapLongTapPoint.value.longitude.value
+                    ),
+                    ym,
+                    context
+                )
+            }) {
+                Text("car route")
             }
-            myPlace = map.mapObjects.addPlacemark().apply {
-                setIcon(img)
+            Button(
+                {
+                    buttonRemoveRoute()
+                    walkRoute(
+                        com.yandex.mapkit.geometry.Point(latitude.value, longitude.value),
+                        com.yandex.mapkit.geometry.Point(
+                            mapLongTapPoint.value.latitude.value,
+                            mapLongTapPoint.value.longitude.value
+                        ),
+                        context,
+                        map1.toNative(),
+                        systemDarkTheme
+                    )
+                }
+            ) {
+                Text("walk route")
             }
         }
     }
+}
+
+fun buttonRemoveRoute() {
+    if (carPolylineMapObject != null) {
+        if (carPolylineMapObject!!.isValid) {
+            map1.toNative().mapObjects.remove(carPolylineMapObject as com.yandex.mapkit.map.MapObject)
+        }
+    }
+    if (walkPolylineMapObject != null) {
+        if (walkPolylineMapObject!!.isValid) {
+            map1.toNative().mapObjects.remove(walkPolylineMapObject as com.yandex.mapkit.map.MapObject)
+        }
+    }
+}
+
+var carPolylineMapObject: com.yandex.mapkit.map.PolylineMapObject? = null
+
+fun carRoute(
+    startLocation: com.yandex.mapkit.geometry.Point,
+    endLocation: com.yandex.mapkit.geometry.Point,
+    map: com.yandex.mapkit.map.Map,
+    context: Context
+) {
+    val drRouter = DirectionsFactory.getInstance().createDrivingRouter(DrivingRouterType.COMBINED)
+    val drOptions = DrivingOptions()
+    val vehicleOptions = VehicleOptions()
+    val requestPoint: ArrayList<RequestPoint> = ArrayList()
+    requestPoint.add(RequestPoint(startLocation, RequestPointType.WAYPOINT, null, null))
+    requestPoint.add(RequestPoint(endLocation, RequestPointType.WAYPOINT, null, null))
+    val drListener = object : DrivingRouteListener {
+        override fun onDrivingRoutes(p0: MutableList<DrivingRoute>) {
+            carPolylineMapObject = map.mapObjects.addPolyline(p0[0].geometry)
+            carPolylineMapObject!!.apply {
+                strokeWidth = 5f
+                setStrokeColor(ContextCompat.getColor(context, R.color.purple_500))
+                dashLength = 6f
+                gapLength = 6f
+            }
+        }
+
+        override fun onDrivingRoutesError(p0: Error) {
+            val error = "unknown error"
+            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    drRouter.requestRoutes(requestPoint, drOptions, vehicleOptions, drListener)
+}
+
+fun walkRoute(
+    startLocation: com.yandex.mapkit.geometry.Point,
+    endLocation: com.yandex.mapkit.geometry.Point,
+    context: Context,
+    map: com.yandex.mapkit.map.Map,
+    isSystemDarkTheme: Boolean
+) {
+    val transitOptions = TransitOptions(FilterVehicleTypes.NONE.value, TimeOptions())
+    val avoidStep = false
+    val routeOptions = RouteOptions(FitnessOptions(avoidStep))
+    val points: MutableList<RequestPoint> = ArrayList()
+    points.add(
+        RequestPoint(
+            startLocation,
+            RequestPointType.WAYPOINT,
+            null,
+            null
+        )
+    )
+    points.add(
+        RequestPoint(
+            endLocation,
+            RequestPointType.WAYPOINT,
+            null,
+            null
+        )
+    )
+    val mtRouter = TransportFactory.getInstance().createMasstransitRouter()
+
+    val masstransitRouter = object : RouteListener {
+        override fun onMasstransitRoutes(p0: MutableList<Route>) {
+            if (p0.size > 0) {
+                for (section in p0[0].sections) {
+                    drawSection(
+                        section.metadata.data,
+                        SubpolylineHelper.subpolyline(
+                            p0[0].geometry, section.geometry
+                        ),
+                        map,
+                        context,
+                        isSystemDarkTheme
+                    )
+                }
+            }
+        }
+
+        override fun onMasstransitRoutesError(error: Error) {
+            var errorMessage: String? = "unknown error message"
+            if (error is RemoteError) {
+                errorMessage = "remote error message"
+            } else if (error is NetworkError) {
+                errorMessage = "network error message"
+            }
+
+            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+        }
+
+    }
+    mtRouter.requestRoutes(points, transitOptions, routeOptions, masstransitRouter)
+}
+
+var walkPolylineMapObject: com.yandex.mapkit.map.PolylineMapObject? = null
+
+private fun drawSection(
+    data: SectionData, geometry: com.yandex.mapkit.geometry.Polyline,
+    map: com.yandex.mapkit.map.Map,
+    context: Context,
+    isSystemDarkTheme: Boolean
+) {
+    walkPolylineMapObject = map.mapObjects.addPolyline(geometry)
+    walkPolylineMapObject!!.apply {
+        strokeWidth = 5f
+        setStrokeColor(ContextCompat.getColor(context, R.color.purple_500))
+        dashLength = 6f
+        gapLength = 6f
+    }
+    if (data.transports != null) {
+        for (transport in data.transports!!) {
+            if (transport.line.style != null) {
+                if (isSystemDarkTheme) {
+                    transport.line.style!!.color!!.or(0xFFFFFFFF.toInt())
+                } else {
+                    transport.line.style!!.color?.or(-0x1000000)
+                }
+                return
+            }
+        }
+        val knownVehicleTypes = HashSet<String>()
+        knownVehicleTypes.add("bus")
+        knownVehicleTypes.add("tramway")
+        for (transport in data.transports!!) {
+            val sectionVehicleType = getVehicleType(transport, knownVehicleTypes)
+            if (sectionVehicleType == "bus") {
+                if (isSystemDarkTheme) {
+                    walkPolylineMapObject!!.setStrokeColor(0xFF00FF00.toInt()) // light Green
+                } else {
+                    walkPolylineMapObject!!.setStrokeColor(0xFF287A28.toInt()) // dark green
+                }
+                return
+            } else if (sectionVehicleType == "tramway") {
+                if (isSystemDarkTheme) {
+                    walkPolylineMapObject!!.setStrokeColor(-0x10000) // light Red
+                } else {
+                    walkPolylineMapObject!!.setStrokeColor(0xFF942323.toInt()) //dark Red
+                }
+                return
+            }
+        }
+//            polylineMapObject.setStrokeColor(-0xffff01) // Blue
+    } else {
+        if (isSystemDarkTheme) {
+            walkPolylineMapObject!!.setStrokeColor(0xFFFFFFFF.toInt()) // white
+        } else {
+            walkPolylineMapObject!!.setStrokeColor(-0x1000000) // Black
+        }
+    }
+}
+
+private fun getVehicleType(transport: Transport, knownVehicleTypes: HashSet<String>): String? {
+    for (type in transport.line.vehicleTypes) {
+        if (knownVehicleTypes.contains(type)) {
+            return type
+        }
+    }
+    return null
 }
 
 @Composable

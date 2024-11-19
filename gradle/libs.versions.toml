@@ -1,5 +1,6 @@
 [versions]
 agp = "8.6.1"
+core = "3.2.1"
 kotlin = "2.0.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -8,12 +9,20 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.3"
 composeBom = "2024.10.00"
+mapsMobile = "4.8.1-full"
 navigationCompose = "2.8.3"
+
+playServicesLocation = "21.3.0"
+roadevents = "4.8.1"
+mapsMobileVersion = "4.8.1-navikit"
+yandexMapkitKmp = "0.1.1"
+yandexMapkitKmpCompose = "0.1.1"
 
 [libraries]
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 auth-kt = { module = "io.github.jan-tennert.supabase:auth-kt" }
+core = { module = "com.google.zxing:core", version.ref = "core" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -27,9 +36,17 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+maps-mobile-v481full = { module = "com.yandex.android:maps.mobile", version.ref = "mapsMobile" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 postgrest-kt = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
 realtime-kt = { module = "io.github.jan-tennert.supabase:realtime-kt" }
+
+automotivenavigation = { module = "com.yandex.mapkit.styling:automotivenavigation", version.ref = "roadevents" }
+maps-mobile-v481navikit = { module = "com.yandex.android:maps.mobile", version.ref = "mapsMobileVersion" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+roadevents = { module = "com.yandex.mapkit.styling:roadevents", version.ref = "roadevents" }
+yandex-mapkit-kmp = { module = "ru.sulgik.mapkit:yandex-mapkit-kmp", version.ref = "yandexMapkitKmp" }
+yandex-mapkit-kmp-compose = { module = "ru.sulgik.mapkit:yandex-mapkit-kmp-compose", version.ref = "yandexMapkitKmpCompose" }
 
 
 [plugins]

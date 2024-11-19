@@ -267,34 +267,9 @@ class MainActivity : ComponentActivity() {
 //            }
             val coroutineScope = rememberCoroutineScope()
             var data: Users? = null
-//            NavHost(navController, startDestination = Navigation.RegisterAccount.route){
-//                composable(Navigation.RegisterAccount.route){
-//                    RegisterAccount(
-//                        onClick = {
-//                            coroutineScope.launch {
-//                                supa.insertUserData(
-//                                    name = userData.name.value,
-//                                    email = userData.email.value,
-//                                    password = userData.password.value,
-//                                    context = this@MainActivity
-//                                )
-//                                data = supa.getData(
-//                                    password = userData.password.value,
-//                                    email = userData.email.value,
-//                                    context = this@MainActivity
-//                                )
-//                            }
-//                            navController.navigate(Navigation.Profile.route)
-//                        }
-//                    )
-//                }
-//                composable(Navigation.Profile.route){
-//                    Profile(this@MainActivity, data = data)
-//                }
-//            }
-            NavHost(navController, startDestination = "t"){
-                composable("t"){
-                    t {
+            NavHost(navController, startDestination = Navigation.CheckOut.route){
+                composable(Navigation.CheckOut.route){
+                    CheckOut {
                         navController.navigate(Navigation.YandexMapKit.route)
                     }
                 }
@@ -302,8 +277,7 @@ class MainActivity : ComponentActivity() {
                     YandexMapKit(
                         PointObj.myLatitude,
                         PointObj.myLongitude,
-                        cameraPosition,
-                        this@MainActivity
+                        cameraPosition, this@MainActivity
                     )
                 }
             }
