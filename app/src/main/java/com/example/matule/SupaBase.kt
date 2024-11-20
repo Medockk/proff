@@ -21,8 +21,10 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.resolveAccessToken
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.functions.Functions
+import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
@@ -51,9 +53,9 @@ private const val postgrest = "Users"
 private const val postEmail = "email"
 private const val postPassword = "password"
 private const val postName = "name"
-private const val token = "sbp_3700007c4c2bc66715d549b66647255acfe97c9a"
+private const val token = "sbp_v0_ffc4943eea2b120930ef51b98f004459fa5a650b"
 private var accessToken: String? = ""
-public const val myEmail = "andreev.arsenij2020@gmail.com"
+const val myEmail = "andreev.arsenij2020@gmail.com"
 
 class SupaBase {
     @OptIn(SupabaseInternal::class)
@@ -149,7 +151,7 @@ class SupaBase {
     ): Users? {
         try {
             val clientData = createSupabaseClient()
-            val data = clientData.from(postgrest).select{
+            val data = clientData.from(postgrest).select {
                 filter {
                     or {
                         eq(postPassword, password)
@@ -164,6 +166,7 @@ class SupaBase {
         }
     }
 
+    @OptIn(SupabaseInternal::class)
     suspend fun sendOTP(
         email: String,
         context: Context
@@ -175,15 +178,14 @@ class SupaBase {
             for (i in 0..5) {
                 captchaToken += Random.nextInt(0, 10)
             }
-            client.auth.verifyEmailOtp(
-                type = OtpType.Email.EMAIL,
-                email = email,
-                token = token ?: accessToken!!
+            val t = client.resolveAccessToken().toString()
+            client.auth.resendEmail(
+                type = OtpType.Email.SIGNUP,
+                email = email
             )
         } catch (ex: Exception) {
             Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
         }
-
     }
 
     suspend fun signUpWithEmail(

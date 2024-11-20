@@ -93,6 +93,7 @@ import com.yandex.mapkit.directions.driving.DrivingRouterType
 import com.yandex.mapkit.directions.driving.DrivingSession.DrivingRouteListener
 import com.yandex.mapkit.directions.driving.VehicleOptions
 import com.yandex.mapkit.geometry.SubpolylineHelper
+import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.transport.TransportFactory
 import com.yandex.mapkit.transport.masstransit.FilterVehicleTypes
 import com.yandex.mapkit.transport.masstransit.FitnessOptions
@@ -115,6 +116,7 @@ import ru.sulgik.mapkit.compose.rememberAndInitializeMapKit
 import ru.sulgik.mapkit.compose.rememberCameraPositionState
 import ru.sulgik.mapkit.compose.rememberPlacemarkState
 import ru.sulgik.mapkit.geometry.Point
+import ru.sulgik.mapkit.geometry.toNative
 import ru.sulgik.mapkit.map.CameraPosition
 import ru.sulgik.mapkit.map.ImageProvider
 import ru.sulgik.mapkit.map.InputListener
@@ -1658,11 +1660,11 @@ fun YandexMapKit(
 ) {
     val mapLongTapPoint = remember { mutableStateOf(Point(0.0, 0.0)) }
     val r = rememberPlacemarkState(mapLongTapPoint.value)
-    val lol = mutableListOf(Point(latitude.value, longitude.value), mapLongTapPoint.value)
     var pol: PolylineMapObject? = null
     var selectedPlace: ru.sulgik.mapkit.map.PlacemarkMapObject? = null
     var secondSelectedPoint: ru.sulgik.mapkit.map.PlacemarkMapObject? = null
     var myPlace: ru.sulgik.mapkit.map.PlacemarkMapObject? = null
+    var bool = remember { mutableStateOf(false) }
 
     val systemDarkTheme = isSystemInDarkTheme()
     var startPosition = CameraPosition(
@@ -1678,7 +1680,6 @@ fun YandexMapKit(
 
     rememberAndInitializeMapKit().bindToLifecycleOwner()
 
-    val placemarkGeometry = Point(latitude.value, longitude.value)
     val cameraPositionState = rememberCameraPositionState { position = startPosition }
 
     val selectedPoint = ImageProvider.fromResource(context = context, R.drawable.point)
@@ -1757,55 +1758,34 @@ fun YandexMapKit(
                 }
 
                 override fun onMapLongTap(map: Map, point: Point) {
+                    bool.value = true
                     if (pol != null) {
                         map.mapObjects.remove(pol as MapObject)
                     }
                     if (selectedPlace != null) {
-
-                        if (carPolylineMapObject != null) {
-                            if (carPolylineMapObject!!.isValid) {
-                                if (secondSelectedPoint != null){
-                                    map.mapObjects.remove(secondSelectedPoint as MapObject)
-                                }else{
-                                    Toast.makeText(context, "else branch", Toast.LENGTH_SHORT).show()
-                                }
-
-                                secondSelectedPoint = map.mapObjects.addPlacemark().apply {
-                                    geometry = point
-                                    if (systemDarkTheme) {
-                                        setIcon(selectedPointWhite)
-                                    } else {
-                                        setIcon(selectedPoint)
-                                    }
-                                    isDraggable = true
-                                    setDragListener(drag)
-                                }
-
-                            }
-                        } else if (walkPolylineMapObject != null) {
-                            if (walkPolylineMapObject!!.isValid) {
-                                if (secondSelectedPoint != null){
-                                    map.mapObjects.remove(secondSelectedPoint as MapObject)
-                                }
-                                secondSelectedPoint = map.mapObjects.addPlacemark().apply {
-                                    geometry = point
-                                    if (systemDarkTheme) {
-                                        setIcon(selectedPointWhite)
-                                    } else {
-                                        setIcon(selectedPoint)
-                                    }
-                                    isDraggable = true
-                                    setDragListener(drag)
-                                }
-                            }
-                        } else {
-                            map.mapObjects.remove(selectedPlace as MapObject)
+                        map1.mapObjects.remove(selectedPlace as MapObject)
+                        if (carPolylineMapObject != null && carPolylineMapObject!!.isValid){
+                            map1.toNative().mapObjects.remove(carPolylineMapObject as com.yandex.mapkit.map.MapObject)
+                            carRoute(
+                                com.yandex.mapkit.geometry.Point(latitude.value, longitude.value),
+                                point.toNative(),
+                                map.toNative(),
+                                context
+                            )
+                        }
+                        if (walkPolylineMapObject != null && walkPolylineMapObject!!.isValid){
+                            map1.toNative().mapObjects.remove(walkPolylineMapObject as com.yandex.mapkit.map.MapObject)
+                            walkRoute(
+                                com.yandex.mapkit.geometry.Point(latitude.value, longitude.value),
+                                point.toNative(), context,
+                                map.toNative(), systemDarkTheme
+                            )
                         }
                     }
 
                     mapLongTapPoint.value = point
                     r.geometry = point
-                    selectedPlace = map.mapObjects.addPlacemark().apply {
+                    selectedPlace = map1.mapObjects.addPlacemark().apply {
                         geometry = point
                         if (systemDarkTheme) {
                             setIcon(selectedPointWhite)
@@ -1837,31 +1817,35 @@ fun YandexMapKit(
         ) {
             Button({
                 buttonRemoveRoute()
-                carRoute(
-                    com.yandex.mapkit.geometry.Point(latitude.value, longitude.value),
-                    com.yandex.mapkit.geometry.Point(
-                        mapLongTapPoint.value.latitude.value,
-                        mapLongTapPoint.value.longitude.value
-                    ),
-                    ym,
-                    context
-                )
-            }) {
-                Text("car route")
-            }
-            Button(
-                {
-                    buttonRemoveRoute()
-                    walkRoute(
+                if (bool.value) {
+                    carRoute(
                         com.yandex.mapkit.geometry.Point(latitude.value, longitude.value),
                         com.yandex.mapkit.geometry.Point(
                             mapLongTapPoint.value.latitude.value,
                             mapLongTapPoint.value.longitude.value
                         ),
-                        context,
-                        map1.toNative(),
-                        systemDarkTheme
+                        ym,
+                        context
                     )
+                }
+            }) {
+                Text("car route")
+            }
+            Button(
+                {
+                    if (bool.value) {
+                        buttonRemoveRoute()
+                        walkRoute(
+                            com.yandex.mapkit.geometry.Point(latitude.value, longitude.value),
+                            com.yandex.mapkit.geometry.Point(
+                                mapLongTapPoint.value.latitude.value,
+                                mapLongTapPoint.value.longitude.value
+                            ),
+                            context,
+                            map1.toNative(),
+                            systemDarkTheme
+                        )
+                    }
                 }
             ) {
                 Text("walk route")

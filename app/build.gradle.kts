@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.matule"
-        minSdk = 26
+        minSdk = 29
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -54,21 +54,20 @@ android {
 dependencies {
     implementation(libs.navigation.compose)
 
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.0.1"))
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.0.2"))
     implementation(libs.postgrest.kt)
     implementation(libs.auth.kt)
     implementation(libs.realtime.kt)
     implementation("io.github.jan-tennert.supabase:auth-kt:3.0.2")
     implementation("io.ktor:ktor-client-cio:3.0.1")
-    implementation ("io.github.jan-tennert.supabase:storage-kt:3.0.1")
-    implementation(platform("io.github.jan-tennert.supabase:bom:2.5.4"))
-    implementation("io.github.jan-tennert.supabase:postgrest-kt:2.5.4")
+    implementation ("io.github.jan-tennert.supabase:storage-kt:3.0.2")
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.0.2"))
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:3.0.2")
     implementation("io.ktor:ktor-client-android:2.3.12")
-    implementation("io.github.jan-tennert.supabase:gotrue-kt:2.5.4")
-    implementation("io.github.jan-tennert.supabase:realtime-kt:2.5.4")
-    implementation("io.github.jan-tennert.supabase:supabase-kt:2.5.4")
-    implementation("io.github.jan-tennert.supabase:storage-kt:2.5.4")
-    implementation("io.github.jan-tennert.supabase:functions-kt:2.5.4")
+    implementation("io.github.jan-tennert.supabase:realtime-kt:3.0.2")
+    implementation("io.github.jan-tennert.supabase:supabase-kt:3.0.2")
+    implementation("io.github.jan-tennert.supabase:storage-kt:3.0.2")
+    implementation("io.github.jan-tennert.supabase:functions-kt:3.0.2")
     implementation("io.ktor:ktor-client-java:2.3.11")
     implementation (libs.maps.mobile.v481full)
     implementation(libs.yandex.mapkit.kmp)

@@ -1,18 +1,12 @@
 package com.example.matule
 
 import android.Manifest
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,70 +21,27 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
-import androidx.core.graphics.drawable.toIcon
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.yandex.mapkit.MapKitFactory
-import com.yandex.mapkit.location.Location
-import com.yandex.mapkit.location.LocationListener
-import com.yandex.mapkit.location.LocationStatus
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.annotations.SupabaseInternal
-import io.github.jan.supabase.auth.Auth
-import io.github.jan.supabase.auth.OtpType
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.Google
-import io.github.jan.supabase.auth.providers.builtin.Email
-import io.github.jan.supabase.auth.providers.builtin.OTP
-import io.github.jan.supabase.auth.providers.builtin.Phone
-import io.github.jan.supabase.auth.signInAnonymously
-import io.github.jan.supabase.auth.status.SessionSource
-import io.github.jan.supabase.auth.status.SessionStatus
-import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.functions.Functions
-import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.Columns
-import io.github.jan.supabase.realtime.PostgresAction
-import io.github.jan.supabase.realtime.Realtime
-import io.github.jan.supabase.realtime.channel
-import io.github.jan.supabase.realtime.postgresChangeFlow
-import io.github.jan.supabase.realtime.realtime
-import io.github.jan.supabase.storage.Storage
-import io.github.jan.supabase.storage.storage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import ru.sulgik.mapkit.compose.bindToLifecycleOwner
-import ru.sulgik.mapkit.compose.rememberAndInitializeMapKit
-import ru.sulgik.mapkit.compose.rememberCameraPositionState
 import ru.sulgik.mapkit.geometry.Point
 import ru.sulgik.mapkit.map.CameraPosition
-import java.io.ByteArrayOutputStream
-import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
     lateinit var locationManager: android.location.LocationManager
@@ -265,8 +216,6 @@ class MainActivity : ComponentActivity() {
 //                    )
 //                }
 //            }
-            val coroutineScope = rememberCoroutineScope()
-            var data: Users? = null
             NavHost(navController, startDestination = Navigation.CheckOut.route){
                 composable(Navigation.CheckOut.route){
                     CheckOut {
@@ -288,21 +237,8 @@ class MainActivity : ComponentActivity() {
             pointObj.requestLocationPermission()
         }
     }
-
-    @Composable
-    fun t(o: () -> Unit) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ){
-            Button(
-                {o()}
-            ) { }
-        }
-    }
     val supa = SupaBase()
     var first = true
-    private lateinit var o: Users
 
     override fun onResume() {
         super.onResume()
@@ -372,7 +308,7 @@ class MainActivity : ComponentActivity() {
         val password1 = remember { mutableStateOf("") }
         val showImage = remember { mutableStateOf(false) }
         val i = ImageBitmap.imageResource(R.drawable.red_heart)
-        var img= remember { mutableStateOf(i) }
+        val img= remember { mutableStateOf(i) }
         Box(
             contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
         ) {
@@ -458,7 +394,7 @@ class MainActivity : ComponentActivity() {
                         onClick = {
                             coroutineScope.launch{
                                 try{
-                                    supa.subscribeToChannel(this@MainActivity, coroutineScope)
+                                    supa.sendOTP(myEmail, this@MainActivity)
                                 }catch(ex:Exception){
                                     Toast.makeText(this@MainActivity, ex.message.toString(), Toast.LENGTH_SHORT).show()
                                 }
@@ -475,7 +411,7 @@ class MainActivity : ComponentActivity() {
     var go = MutableStateOf.go()
 
     @Composable
-    fun f(onClick: () -> Unit){
+    fun F(onClick: () -> Unit){
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -520,7 +456,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun s(o: () -> Unit){
+    fun S(o: () -> Unit){
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -564,7 +500,7 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         val supa = SupaBase()
         lifecycleScope.launch {
-            var icon = supa.getImageFromStorage()
+            val icon = supa.getImageFromStorage()
             storageIcon(icon)
         }
     }
