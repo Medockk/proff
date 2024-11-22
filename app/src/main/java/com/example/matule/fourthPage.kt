@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,37 +32,27 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.matule.ui.theme.Masiva40012_2B2B2B
 import com.example.matule.ui.theme.Masiva40012_707B81
 import com.example.matule.ui.theme.Masiva40016_2B2B2B
@@ -101,8 +90,24 @@ fun Background() {
     }
 }
 
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun SideMenu() {
+private fun t() {
+    val c = LocalContext.current
+    Profile(c, Users()){
+
+    }
+}
+@Composable
+fun SideMenu(
+    profileClick: () -> Unit,
+    cartClick: () -> Unit,
+    favoriteClick: () -> Unit,
+    ordersClick: () -> Unit,
+    notificationClick: () -> Unit,
+    settingClick: () -> Unit,
+    signOutClick: () -> Unit
+) {
     Background()
     Column(
         modifier = Modifier
@@ -112,7 +117,15 @@ fun SideMenu() {
         verticalArrangement = Arrangement.SpaceAround
     ) {
         ProfileImage(style = Raleway70020White)
-        ProfileIcon()
+        ProfileIcon(
+            profileClick = profileClick,
+            cartClick = cartClick,
+            favoriteClick = favoriteClick,
+            ordersClick = ordersClick,
+            notificationClick = notificationClick,
+            settingClick = settingClick,
+            signOutClick = signOutClick
+        )
     }
 }
 
@@ -176,8 +189,19 @@ fun ProfileImage(
 }
 
 @Composable
-fun ProfileIcon() {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+fun ProfileIcon(
+    profileClick: () -> Unit,
+    cartClick: () -> Unit,
+    favoriteClick: () -> Unit,
+    ordersClick: () -> Unit,
+    notificationClick: () -> Unit,
+    settingClick: () -> Unit,
+    signOutClick: () -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable {
+            profileClick()
+        }) {
         Icon(
             Icons.Default.Person,
             contentDescription = null,
@@ -190,7 +214,12 @@ fun ProfileIcon() {
             modifier = Modifier.weight(0.89f)
         )
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable {
+            cartClick()
+        }
+    ) {
         Image(
             painter = painterResource(R.drawable.shop_bag2), contentDescription = null,
             colorFilter = ColorFilter.tint(Color.White),
@@ -201,7 +230,10 @@ fun ProfileIcon() {
         Spacer(Modifier.weight(0.01f))
         Text(modifier = Modifier.weight(0.89f), text = "Корзина", style = Raleway50016White)
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable {
+            favoriteClick()
+        }) {
         Image(
             painterResource(R.drawable.unselected_heart),
             contentDescription = null,
@@ -216,7 +248,10 @@ fun ProfileIcon() {
             style = Raleway50016White
         )
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable {
+            ordersClick()
+        }) {
         Image(
             painterResource(R.drawable.order_car),
             colorFilter = ColorFilter.tint(Color.White),
@@ -231,7 +266,10 @@ fun ProfileIcon() {
             style = Raleway50016White
         )
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable {
+            notificationClick()
+        }) {
         Icon(
             Icons.Default.Notifications,
             contentDescription = null,
@@ -244,7 +282,10 @@ fun ProfileIcon() {
         Text(modifier = Modifier.weight(0.89f), text = "Уведомления", style = Raleway50016White)
     }
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable {
+                settingClick()
+            }) {
             Icon(
                 Icons.Default.Settings,
                 contentDescription = null,
@@ -266,7 +307,10 @@ fun ProfileIcon() {
                 .fillMaxWidth()
                 .height(1.dp)
         )
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable {
+                signOutClick()
+            }) {
             Icon(
                 painter = painterResource(R.drawable.exid),
                 contentDescription = null,
@@ -285,7 +329,7 @@ fun ProfileIcon() {
 }
 
 @Composable
-fun EditProfile(homeOnClick: () -> Unit) {
+fun EditProfile(homeOnClick: () -> Unit, resetPasswordClick: () -> Unit) {
     Column {
         val screen = LocalConfiguration.current.screenWidthDp / 1.65
         Box(
@@ -298,7 +342,7 @@ fun EditProfile(homeOnClick: () -> Unit) {
                 text = "Профиль",
                 icon = 1,
                 cartScreen = true,
-                backOcClick = homeOnClick
+                backOnClick = homeOnClick
             )
         }
         Column(
@@ -338,7 +382,7 @@ fun EditProfile(homeOnClick: () -> Unit) {
                     RegisterData(text = "Email", userData.email)
                     RegisterData(text = "Пароль", userData.password)
 
-                    Recover("Восстановить пароль")
+                    Recover("Восстановить пароль", resetPasswordClick)
                     SetButton("Сохранить", onClick = homeOnClick)
                 }
             }
@@ -349,12 +393,12 @@ fun EditProfile(homeOnClick: () -> Unit) {
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun Profile(context: Context, data: Users?) {
+fun Profile(context: Context, data: Users?, backOnClick: () -> Unit) {
     val heightScreen = LocalConfiguration.current.screenHeightDp / 20
     var bitmap: Bitmap? = null
     var width = remember { mutableStateOf(0.dp) }
     var height = remember { mutableStateOf(0.dp) }
-    var bytes = remember {
+    val bytes = remember {
         mutableStateOf<ByteArray?>(null)
     }
     val coroutineScope = rememberCoroutineScope()
@@ -372,7 +416,9 @@ fun Profile(context: Context, data: Users?) {
                 icon = 1,
                 secondText = "Готово",
                 context = context,
-                data = data
+                data = data,
+                backOnClick = backOnClick,
+                img = bytes
             )
         }
         Column(
@@ -492,7 +538,7 @@ fun LoadImage(bytes: MutableState<ByteArray?>): ManagedActivityResultLauncher<St
 }
 
 @Composable
-fun Search() {
+fun Search(backOnClick: () -> Unit) {
     BackGround()
     Column {
         val screen = LocalConfiguration.current.screenWidthDp / 1.65
@@ -506,7 +552,8 @@ fun Search() {
                 painter = painterResource(R.drawable.eye),
                 text = "Поиск",
                 icon = 1,
-                cartScreen = true
+                cartScreen = true,
+                backOnClick = backOnClick
             )
         }
         Box(Modifier.padding(top = (screenHeight / 2).dp)) {
@@ -544,7 +591,7 @@ fun ShowSearchStory(item: String) {
 }
 
 @Composable
-fun Notification() {
+fun Notification(backOnClick: () -> Unit) {
     val screen = LocalConfiguration.current.screenWidthDp / 1.65
     val screenHeight = LocalConfiguration.current.screenHeightDp / 20
     Column(
@@ -559,7 +606,8 @@ fun Notification() {
                 painter = painterResource(R.drawable.eye),
                 text = "Уведомления",
                 icon = 1,
-                cartScreen = true
+                cartScreen = true,
+                backOnClick = backOnClick
             )
         }
         Column(

@@ -6,6 +6,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +26,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -64,6 +68,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -93,7 +98,6 @@ import com.yandex.mapkit.directions.driving.DrivingRouterType
 import com.yandex.mapkit.directions.driving.DrivingSession.DrivingRouteListener
 import com.yandex.mapkit.directions.driving.VehicleOptions
 import com.yandex.mapkit.geometry.SubpolylineHelper
-import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.transport.TransportFactory
 import com.yandex.mapkit.transport.masstransit.FilterVehicleTypes
 import com.yandex.mapkit.transport.masstransit.FitnessOptions
@@ -127,8 +131,17 @@ import ru.sulgik.mapkit.map.PolylineMapObject
 import ru.sulgik.mapkit.map.fromResource
 import ru.sulgik.mapkit.map.toCommon
 
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun Home(favoriteOnClick: (() -> Unit), myCartOnClick: (() -> Unit)) {
+fun o() {
+    Home({},{},{}, {}) { }
+}
+@Composable
+fun Home(favoriteOnClick: (() -> Unit),
+         myCartOnClick: (() -> Unit),
+         sideMenuClick: () -> Unit,
+         ordersOnClick: () -> Unit,
+         editProfileClick: () -> Unit) {
     BackGround()
     Column(
         modifier = Modifier
@@ -140,7 +153,8 @@ fun Home(favoriteOnClick: (() -> Unit), myCartOnClick: (() -> Unit)) {
             painter = painterResource(R.drawable.profile),
             text = "Главная",
             painter2 = painterResource(R.drawable.shop_bag),
-            firstPage = true
+            firstPage = true,
+            sideMenuClick = sideMenuClick
         )
         TopBarSearch()
         Categories()
@@ -153,13 +167,19 @@ fun Home(favoriteOnClick: (() -> Unit), myCartOnClick: (() -> Unit)) {
         CardAction()
         BottomVector(
             true, favoriteOnClick = favoriteOnClick,
-            myCartOnClick = myCartOnClick
+            myCartOnClick = myCartOnClick, ordersOnClick = ordersOnClick,
+            editProfileClick = editProfileClick
         )
     }
 }
 
 @Composable
-fun Favorite(homeOnClick: (() -> Unit), myCartOnClick: (() -> Unit)) {
+fun Favorite(
+    homeOnClick: (() -> Unit),
+    myCartOnClick: (() -> Unit),
+    backOnClick: () -> Unit,
+    ordersOnClick: () -> Unit,
+    editProfileClick: () -> Unit) {
     BackGround()
     Column(
         modifier = Modifier
@@ -170,8 +190,9 @@ fun Favorite(homeOnClick: (() -> Unit), myCartOnClick: (() -> Unit)) {
         TopBar(
             painter = painterResource(R.drawable.eye),
             text = "Избранное",
+            painter2 = painterResource(R.drawable.unselected_heart),
             icon = 1,
-            painter2 = painterResource(R.drawable.unselected_heart)
+            backOnClick = backOnClick
         )
         Column(
             Modifier.padding(top = 20.dp)
@@ -186,7 +207,11 @@ fun Favorite(homeOnClick: (() -> Unit), myCartOnClick: (() -> Unit)) {
             BootCard(whiteCart = painterResource(R.drawable.white_cart))
             Spacer(Modifier.padding(bottom = 10.dp))
         }
-        BottomVector(false, homeOnClick = homeOnClick, myCartOnClick = myCartOnClick)
+        BottomVector(
+            false,
+            homeOnClick = homeOnClick, myCartOnClick = myCartOnClick,
+            ordersOnClick = ordersOnClick, editProfileClick = editProfileClick
+        )
     }
 }
 
@@ -451,8 +476,13 @@ fun TextAll(text: String) {
 
 @Composable
 fun Categories(selectedOutdoorIcon: Boolean = false) {
+    val f0 = remember { mutableStateOf(false) }
+    val f1 = remember { mutableStateOf(false) }
+    val f2 = remember { mutableStateOf(false) }
+    val f3 = remember { mutableStateOf(false) }
     Column(
-        Modifier.padding(start = 20.dp),
+        Modifier.fillMaxWidth()
+            .padding(start = 20.dp)
     ) {
         Text(
             text = "Категории",
@@ -464,38 +494,140 @@ fun Categories(selectedOutdoorIcon: Boolean = false) {
             ),
             modifier = Modifier.padding(bottom = 15.dp)
         )
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            items(4) { item ->
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .shadow(2.dp)
-                        .background(
-                            if (selectedOutdoorIcon && item == 1) {
-                                _48B2E7
-                            } else {
-                                Color.White
-                            }
-                        )
-                        .size(108.dp, 40.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    TextButton({}) {
-                        Text(
-                            text = textFromItem(item),
-                            color = if (selectedOutdoorIcon && item == 1) {
-                                Color.White
-                            } else {
-                                Color.Black
-                            }
-                        )
-                    }
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween){
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.3f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .shadow(2.dp)
+                    .background(
+                        if (f0.value) {
+                            _48B2E7
+                        } else {
+                            Color.White
+                        }
+                    )
+                    .size(108.dp, 40.dp),
+                contentAlignment = Alignment.Center
+            ){
+                TextButton(
+                    onClick = {
+                        f0.value = true
+                        f1.value = false
+                        f2.value = false
+                        f3.value = false
+                    }) {
+                    Text(
+                        text = "Все",
+                        color = if (f0.value) {
+                            Color.White
+                        }else{
+                            Color.Black
+                        }
+                    )
                 }
-                if (item != 3) {
-                    Spacer(Modifier.size(width = 16.dp, height = 1.dp))
+                Spacer(Modifier.width(20.dp))
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .shadow(2.dp)
+                    .background(
+                        if (f1.value) {
+                            _48B2E7
+                        } else {
+                            Color.White
+                        }
+                    )
+                    .size(108.dp, 40.dp),
+                contentAlignment = Alignment.Center
+            ){
+                TextButton(
+                    onClick = {
+                        f0.value = false
+                        f1.value = true
+                        f2.value = false
+                        f3.value = false
+                    }) {
+                    Text(
+                        text = "Outdoor",
+                        color = if (f1.value) {
+                            Color.White
+                        }else{
+                            Color.Black
+                        }
+                    )
+                }
+                Spacer(Modifier.fillMaxWidth(0.2f))
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .shadow(2.dp)
+                    .background(
+                        if (f2.value) {
+                            _48B2E7
+                        } else {
+                            Color.White
+                        }
+                    )
+                    .size(108.dp, 40.dp),
+                contentAlignment = Alignment.Center
+            ){
+                TextButton(
+                    onClick = {
+                        f0.value = false
+                        f1.value = false
+                        f2.value = true
+                        f3.value = false
+                    }) {
+                    Text(
+                        text = "Tennis",
+                        color = if (f2.value) {
+                            Color.White
+                        }else{
+                            Color.Black
+                        }
+                    )
+                }
+                Spacer(Modifier.fillMaxWidth(0.3f))
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(1.2f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .shadow(2.dp)
+                    .background(
+                        if (f3.value) {
+                            _48B2E7
+                        } else {
+                            Color.White
+                        }
+                    )
+                    .size(108.dp, 40.dp),
+                contentAlignment = Alignment.Center
+            ){
+                TextButton(
+                    onClick = {
+                        f0.value = false
+                        f1.value = false
+                        f2.value = false
+                        f3.value = true
+                    }) {
+                    Text(
+                        text = "Running",
+                        color = if (f3.value) {
+                            Color.White
+                        }else{
+                            Color.Black
+                        }
+                    )
                 }
             }
         }
@@ -525,8 +657,8 @@ fun BackGround() {
 fun TopBar(
     painter: Painter, text: String, painter2: Painter? = null,
     icon: Int? = null, firstPage: Boolean = false, cartScreen: Boolean = false,
-    secondText: String? = null, backOcClick: (() -> Unit)? = null, context: Context? = null,
-    data: Users? = null
+    secondText: String? = null, backOnClick: (() -> Unit)? = null, context: Context? = null,
+    data: Users? = null, sideMenuClick: (() -> Unit)? = null, img: MutableState<ByteArray?>? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -542,7 +674,7 @@ fun TopBar(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-            backOcClick?.invoke()
+            backOnClick!!()
         }) {
             if (icon != null) {
                 Icon(
@@ -558,7 +690,13 @@ fun TopBar(
                 Image(
                     painter = painter, contentDescription = "imgBack",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable {
+                            if (sideMenuClick != null) {
+                                sideMenuClick()
+                            }
+                        }
                 )
             }
         }
@@ -592,16 +730,18 @@ fun TopBar(
                 style = Raleway70015_48B2E7,
                 modifier = Modifier.clickable {
                     coroutineScope.launch {
-                        supa.storage(
-                            iconName = "icon",
-                            img = null,
-                            context = context!!
-                        )
+                        if (img != null) {
+                            supa.storage(
+                                iconName = "icon",
+                                img = img,
+                                context = context!!
+                            )
+                        }
                         supa.updateUserData(
                             name = name,
                             email = email,
                             password = password,
-                            context = context,
+                            context = context!!,
                             data = data!!
                         )
                     }
@@ -781,7 +921,8 @@ fun BottomVector(
     favoriteOnClick: (() -> Unit)? = null,
     homeOnClick: (() -> Unit)? = null,
     ordersOnClick: (() -> Unit)? = null,
-    myCartOnClick: (() -> Unit)? = null
+    myCartOnClick: (() -> Unit)? = null,
+    editProfileClick: (() -> Unit)? = null,
 ) {
     Box(
         modifier = Modifier.fillMaxWidth(),
@@ -878,7 +1019,9 @@ fun BottomVector(
                         )
                     }
                     Spacer(modifier = Modifier.size(25.dp))
-                    IconButton({}) {
+                    IconButton({
+                        editProfileClick?.invoke()
+                    }) {
                         Image(
                             painter = painterResource(R.drawable.people_profile),
                             contentDescription = "profile",
@@ -893,7 +1036,7 @@ fun BottomVector(
 }
 
 @Composable
-fun MyCart(backOcClick: (() -> Unit)?) {
+fun MyCart(backOnClick: (() -> Unit)?, nextClick: () -> Unit) {
     val screenWidth = LocalConfiguration.current.screenWidthDp / 1.65
     BackGround()
     Column(
@@ -911,7 +1054,7 @@ fun MyCart(backOcClick: (() -> Unit)?) {
                 text = "Корзина",
                 icon = 1,
                 cartScreen = true,
-                backOcClick = backOcClick
+                backOnClick = backOnClick
             )
         }
         Text(
@@ -947,12 +1090,12 @@ fun MyCart(backOcClick: (() -> Unit)?) {
                 )
             }
         }
-        BottomCartCard("Оформить заказ")
+        BottomCartCard("Оформить заказ", btnClick = nextClick)
     }
 }
 
 @Composable
-fun BottomCartCard(buttonText: String, showAD: Boolean = false) {
+fun BottomCartCard(buttonText: String, showAD: Boolean = false, btnClick: () -> Unit) {
     val showAlertDialog = remember { mutableStateOf(false) }
     if (showAlertDialog.value) {
         ShowAlertDialog(showAlertDialog)
@@ -1020,6 +1163,8 @@ fun BottomCartCard(buttonText: String, showAD: Boolean = false) {
                 {
                     if (showAD) {
                         showAlertDialog.value = !showAlertDialog.value
+                    }else{
+                        btnClick()
                     }
                 }, modifier = Modifier
                     .fillMaxWidth()
@@ -1308,7 +1453,7 @@ fun BootCard(
 }
 
 @Composable
-fun CheckOut(onClick: () -> Unit) {
+fun CheckOut(onClick: () -> Unit, homeOnClick: () -> Unit, backOnClick: (() -> Unit)?) {
     val size = LocalConfiguration.current.screenWidthDp / 1.65
     BackGround()
     Column(
@@ -1322,11 +1467,12 @@ fun CheckOut(onClick: () -> Unit) {
                 painter = painterResource(R.drawable.eye),
                 text = "My Cart",
                 icon = 1,
-                cartScreen = true
+                cartScreen = true,
+                backOnClick = backOnClick
             )
         }
         ContactInformationCart(onClick)
-        BottomCartCard("Подтвердить", true)
+        BottomCartCard("Подтвердить", true, homeOnClick)
     }
 }
 
@@ -2029,7 +2175,7 @@ private fun getVehicleType(transport: Transport, knownVehicleTypes: HashSet<Stri
 }
 
 @Composable
-fun Orders() {
+fun Orders(backOnClick: () -> Unit) {
     val screen = LocalConfiguration.current.screenWidthDp / 1.65
     val height = LocalConfiguration.current.screenHeightDp / 1.5
     BackGround()
@@ -2043,7 +2189,8 @@ fun Orders() {
                 painter = painterResource(R.drawable.eye),
                 text = "Заказы",
                 icon = 1,
-                cartScreen = true
+                cartScreen = true,
+                backOnClick = backOnClick
             )
         }
         LazyColumn {
@@ -2173,7 +2320,7 @@ fun Recent(time: String) {
 }
 
 @Composable
-fun Popular() {
+fun Popular(backOnClick: () -> Unit) {
     BackGround()
     Column(
         modifier = Modifier
@@ -2185,8 +2332,9 @@ fun Popular() {
         TopBar(
             painter = painterResource(R.drawable.eye),
             text = "Популярное",
+            painter2 = painterResource(R.drawable.unselected_heart),
             icon = 1,
-            painter2 = painterResource(R.drawable.unselected_heart)
+            backOnClick = backOnClick
         )
         Column(
             Modifier.padding(top = 20.dp)
@@ -2205,7 +2353,7 @@ fun Popular() {
 }
 
 @Composable
-fun ListingOutDoor() {
+fun ListingOutDoor(backOnClick: () -> Unit) {
     val screen = LocalConfiguration.current.screenWidthDp / 1.65
     BackGround()
     Column(
@@ -2219,7 +2367,8 @@ fun ListingOutDoor() {
                 painter = painterResource(R.drawable.profile),
                 text = "Outdoor",
                 icon = 1,
-                cartScreen = true
+                cartScreen = true,
+                backOnClick = backOnClick
             )
         }
         Categories(true)
@@ -2238,7 +2387,7 @@ fun ListingOutDoor() {
 }
 
 @Composable
-fun Details() {
+fun Details(backOnClick: () -> Unit) {
     BackGround()
     Column(
         modifier = Modifier
@@ -2248,8 +2397,9 @@ fun Details() {
         TopBar(
             painter = painterResource(R.drawable.profile),
             text = "Sneaker Shop",
-            icon = 1,
             painter2 = painterResource(R.drawable.shop_bag),
+            icon = 1,
+            backOnClick = backOnClick
         )
         Column(
             Modifier

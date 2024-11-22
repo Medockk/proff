@@ -54,179 +54,356 @@ class MainActivity : ComponentActivity() {
         pointObj = PointObj(this, this)
         setContent {
             val navController = rememberNavController()
-//            NavHost(navController = navController, startDestination = Navigation.firstPage.route) {
-//                composable(Navigation.firstPage.route) {
-//                    FirstPage {
-//                        navController.navigate(Navigation.onBoard1.route) {
-//                            popUpTo(Navigation.firstPage.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.onBoard1.route) {
-//                    OnBoard1 {
-//                        navController.navigate(Navigation.onBoard2.route) {
-//                            popUpTo(Navigation.onBoard1.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.onBoard2.route) {
-//                    OnBoard2 {
-//                        navController.navigate(Navigation.onBoard3.route) {
-//                            popUpTo(Navigation.onBoard2.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.onBoard3.route) {
-//                    OnBoard3 {
-//                        navController.navigate(Navigation.SignIn.route) {
-//                            popUpTo(Navigation.onBoard3.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.SignIn.route) {
-//                    SignIn(
-//                        onClick = {
-//                            navController.navigate(Navigation.Home.route) {
-//                                popUpTo(Navigation.SignIn.route) {
-//                                    inclusive = true
-//                                }
-//                            }
-//                        },
-//                        registerAccountOnClick = {
-//                            navController.navigate(Navigation.RegisterAccount.route){
-//                                popUpTo(Navigation.SignIn.route){
-//                                    inclusive = true
-//                                }
-//                            }
-//                        }
-//                    )
-//                }
-//                composable(Navigation.RegisterAccount.route) {
-//                    RegisterAccount(
-//                        onClick = {
-//                            navController.navigate(Navigation.Home.route) {
-//                                popUpTo(Navigation.RegisterAccount.route) {
-//                                    inclusive = true
-//                                }
-//                            }
-//                        },
-//                        signInOnClick = {
-//                            navController.navigate(Navigation.SignIn.route){
-//                                popUpTo(Navigation.RegisterAccount.route){
-//                                    inclusive = true
-//                                }
-//                            }
-//                        }
-//                    )
-//                }
-//                composable(Navigation.ForgotPassword.route) {
-//                    ForgotPassword {
-//                        navController.navigate(Navigation.Verification.route) {
-//                            popUpTo(Navigation.ForgotPassword.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.Verification.route) {
-//                    Verification {
-//                        navController.navigate(Navigation.Home.route) {
-//                            popUpTo(Navigation.Verification.route){
-//                                inclusive = true
-//                            }
-//                            popUpTo(Navigation.SetAlertDialog.route){
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.Home.route) {
-//                    Home(
-//                        favoriteOnClick = {
-//                            navController.navigate(Navigation.Favorite.route) {
-//                                popUpTo(Navigation.Home.route){
-//                                    inclusive = true
-//                                }
-//                            }
-//                        },
-//                        myCartOnClick = {
-//                            navController.navigate(Navigation.MyCart.route) {
-//                                popUpTo(Navigation.Home.route) {
-//                                    inclusive = true
-//                                }
-//                            }
-//                        }
-//                    )
-//                }
-//                composable(Navigation.Favorite.route) {
-//                    Favorite(
-//                        homeOnClick = {
-//                            navController.navigate(Navigation.Home.route) {
-//                                popUpTo(Navigation.Favorite.route) {
-//                                    inclusive = true
-//                                }
-//                            }
-//                        },
-//                        myCartOnClick = {
-//                            navController.navigate(Navigation.MyCart.route){
-//                                popUpTo(Navigation.Favorite.route){
-//                                    inclusive = true
-//                                }
-//                            }
-//                        }
-//                    )
-//                }
-//                composable(Navigation.YandexMapKit.route) {
-//                    YandexMapKit(
-//                        PointObj.myLatitude,
-//                        PointObj.myLongitude,
-//                        cameraPosition,
-//                        this@MainActivity
-//                    )
-//                }
-//                composable(Navigation.Profile.route) {
-//                    Profile()
-//                }
-//                composable(Navigation.CheckOut.route) {
-//                    CheckOut {
-//                        navController.navigate(Navigation.YandexMapKit.route) {
-//                            popUpTo(Navigation.CheckOut.route) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                }
-//                composable(Navigation.MyCart.route) {
-//                    MyCart(
-//                        backOcClick = {
-//                            navController.navigate(Navigation.Home.route){
-//                                popUpTo(Navigation.MyCart.route){
-//                                    inclusive = true
-//                                }
-//                            }
-//                        }
-//                    )
-//                }
-//            }
-            NavHost(navController, startDestination = Navigation.CheckOut.route){
-                composable(Navigation.CheckOut.route){
-                    CheckOut {
-                        navController.navigate(Navigation.YandexMapKit.route)
+            val coroutineScope = rememberCoroutineScope()
+            NavHost(navController = navController, startDestination = Navigation.firstPage.route) {
+                composable(Navigation.firstPage.route) {
+                    FirstPage {
+                        navController.navigate(Navigation.onBoard1.route) {
+                            popUpTo(Navigation.firstPage.route) {
+                                inclusive = true
+                            }
+                        }
                     }
                 }
-                composable(Navigation.YandexMapKit.route){
+                composable(Navigation.onBoard1.route) {
+                    OnBoard1 {
+                        navController.navigate(Navigation.onBoard2.route) {
+                            popUpTo(Navigation.onBoard1.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.onBoard2.route) {
+                    OnBoard2 {
+                        navController.navigate(Navigation.onBoard3.route) {
+                            popUpTo(Navigation.onBoard2.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.onBoard3.route) {
+                    OnBoard3 {
+                        navController.navigate(Navigation.SignIn.route) {
+                            popUpTo(Navigation.onBoard3.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.SignIn.route) {
+                    SignIn(
+                        onClick = {
+                            coroutineScope.launch {
+                                val o = supa.getData(
+                                    email = userData.email.value,
+                                    password = userData.password.value,
+                                    context = this@MainActivity
+                                )
+                                if (o != null) {
+                                    if (o.email != "" && o.password != "") {
+                                        navController.navigate(Navigation.Home.route) {
+                                            popUpTo(Navigation.SignIn.route) {
+                                                inclusive = true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        registerAccountOnClick = {
+                            navController.navigate(Navigation.RegisterAccount.route) {
+                                popUpTo(Navigation.SignIn.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        forgotPasswordClick = {
+                            navController.navigate(Navigation.ForgotPassword.route) {
+                                popUpTo(Navigation.SignIn.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.RegisterAccount.route) {
+                    RegisterAccount(
+                        onClick = {
+                            if (userData.name.value != "" && userData.email.value != "" && userData.password.value != "") {
+                                coroutineScope.launch {
+                                    supa.insertUserData(
+                                        userData.name.value,
+                                        userData.email.value,
+                                        userData.password.value,
+                                        this@MainActivity
+                                    )
+                                }
+                                navController.navigate(Navigation.Home.route) {
+                                    popUpTo(Navigation.RegisterAccount.route) {
+                                        inclusive = true
+                                    }
+                                }
+                            } else {
+                                Toast.makeText(this@MainActivity, "empty data", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                        },
+                        signInOnClick = {
+                            navController.navigate(Navigation.SignIn.route) {
+                                popUpTo(Navigation.RegisterAccount.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.ForgotPassword.route) {
+                    ForgotPassword {
+                        navController.navigate(Navigation.Verification.route) {
+                            popUpTo(Navigation.ForgotPassword.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.Verification.route) {
+                    Verification {
+                        navController.navigate(Navigation.Home.route) {
+                            popUpTo(Navigation.Verification.route) {
+                                inclusive = true
+                            }
+                            popUpTo(Navigation.SetAlertDialog.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.Home.route) {
+                    Home(
+                        favoriteOnClick = {
+                            navController.navigate(Navigation.Favorite.route) {
+                                popUpTo(Navigation.Home.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        myCartOnClick = {
+                            navController.navigate(Navigation.MyCart.route) {
+                                popUpTo(Navigation.Home.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        sideMenuClick = {
+                            navController.navigate(Navigation.SideMenu.route) {
+                                popUpTo(Navigation.Home.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        ordersOnClick = {
+                            navController.navigate(Navigation.Orders.route) {
+                                popUpTo(Navigation.Home.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        editProfileClick = {
+                            navController.navigate(Navigation.EditProfile.route) {
+                                popUpTo(Navigation.Home.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.Orders.route) {
+                    Orders {
+                        navController.navigate(Navigation.Home.route) {
+                            popUpTo(Navigation.Orders.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.EditProfile.route) {
+                    EditProfile(
+                        homeOnClick = {
+                            navController.navigate(Navigation.Home.route) {
+                                popUpTo(Navigation.EditProfile.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        resetPasswordClick = {
+                            navController.navigate(Navigation.ForgotPassword.route) {
+                                popUpTo(Navigation.EditProfile.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.SideMenu.route) {
+                    SideMenu(
+                        profileClick = {
+                            navController.navigate(Navigation.Profile.route) {
+                                popUpTo(Navigation.SideMenu.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        cartClick = {
+                            navController.navigate(Navigation.MyCart.route) {
+                                popUpTo(Navigation.SideMenu.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        favoriteClick = {
+                            navController.navigate(Navigation.Favorite.route) {
+                                popUpTo(Navigation.SideMenu.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        ordersClick = {
+                            navController.navigate(Navigation.Orders.route) {
+                                popUpTo(Navigation.SideMenu.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        notificationClick = {
+                            navController.navigate(Navigation.Notification.route) {
+                                popUpTo(Navigation.SideMenu.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        settingClick = {
+
+                        },
+                        signOutClick = {
+
+                        }
+                    )
+                }
+                composable(Navigation.Notification.route){
+                    Notification {
+                        navController.navigate(Navigation.Home.route) {
+                            popUpTo(Navigation.SideMenu.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+                composable(Navigation.Favorite.route) {
+                    Favorite(
+                        homeOnClick = {
+                            navController.navigate(Navigation.Home.route) {
+                                popUpTo(Navigation.Favorite.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        myCartOnClick = {
+                            navController.navigate(Navigation.MyCart.route) {
+                                popUpTo(Navigation.Favorite.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        backOnClick = {
+                            navController.navigate(Navigation.Home.route) {
+                                popUpTo(Navigation.Favorite.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        ordersOnClick = {
+                            navController.navigate(Navigation.Orders.route) {
+                                popUpTo(Navigation.Favorite.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        editProfileClick = {
+                            navController.navigate(Navigation.EditProfile.route) {
+                                popUpTo(Navigation.Favorite.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.YandexMapKit.route) {
                     YandexMapKit(
                         PointObj.myLatitude,
                         PointObj.myLongitude,
-                        cameraPosition, this@MainActivity
+                        cameraPosition,
+                        this@MainActivity
+                    )
+                }
+                composable(Navigation.Profile.route) {
+                    Profile(this@MainActivity,
+                        Users(
+                            name = userData.name.value,
+                            email = userData.email.value,
+                            password = userData.password.value
+                        ),
+                        backOnClick = {
+                            navController.navigate(Navigation.Home.route) {
+                                popUpTo(Navigation.Favorite.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.CheckOut.route) {
+                    CheckOut(
+                        onClick = {
+                            navController.navigate(Navigation.YandexMapKit.route) {
+                                popUpTo(Navigation.CheckOut.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        homeOnClick = {
+                            navController.navigate(Navigation.Home.route) {
+                                popUpTo(Navigation.CheckOut.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        backOnClick = {
+                            navController.navigate(Navigation.Home.route) {
+                                popUpTo(Navigation.CheckOut.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.MyCart.route) {
+                    MyCart(
+                        backOnClick = {
+                            navController.navigate(Navigation.Home.route) {
+                                popUpTo(Navigation.MyCart.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        nextClick = {
+                            navController.navigate(Navigation.CheckOut.route) {
+                                popUpTo(Navigation.MyCart.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
                     )
                 }
             }
@@ -237,6 +414,7 @@ class MainActivity : ComponentActivity() {
             pointObj.requestLocationPermission()
         }
     }
+
     val supa = SupaBase()
     var first = true
 
@@ -308,7 +486,7 @@ class MainActivity : ComponentActivity() {
         val password1 = remember { mutableStateOf("") }
         val showImage = remember { mutableStateOf(false) }
         val i = ImageBitmap.imageResource(R.drawable.red_heart)
-        val img= remember { mutableStateOf(i) }
+        val img = remember { mutableStateOf(i) }
         Box(
             contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
         ) {
@@ -392,11 +570,15 @@ class MainActivity : ComponentActivity() {
                     }
                     Button(
                         onClick = {
-                            coroutineScope.launch{
-                                try{
+                            coroutineScope.launch {
+                                try {
                                     supa.sendOTP(myEmail, this@MainActivity)
-                                }catch(ex:Exception){
-                                    Toast.makeText(this@MainActivity, ex.message.toString(), Toast.LENGTH_SHORT).show()
+                                } catch (ex: Exception) {
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        ex.message.toString(),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         },
@@ -411,15 +593,15 @@ class MainActivity : ComponentActivity() {
     var go = MutableStateOf.go()
 
     @Composable
-    fun F(onClick: () -> Unit){
+    fun F(onClick: () -> Unit) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
-        ){
+        ) {
             Column {
                 OutlinedTextField(
                     value = go.name.value,
-                    onValueChange = {text ->
+                    onValueChange = { text ->
                         go.name.value = text
                     },
                     label = {
@@ -428,7 +610,7 @@ class MainActivity : ComponentActivity() {
                 )
                 OutlinedTextField(
                     value = go.email.value,
-                    onValueChange = {text ->
+                    onValueChange = { text ->
                         go.email.value = text
                     },
                     label = {
@@ -437,7 +619,7 @@ class MainActivity : ComponentActivity() {
                 )
                 OutlinedTextField(
                     value = go.pass.value,
-                    onValueChange = {text ->
+                    onValueChange = { text ->
                         go.pass.value = text
                     },
                     label = {
@@ -447,8 +629,8 @@ class MainActivity : ComponentActivity() {
                 Button(
                     {
                         Toast.makeText(this@MainActivity, go.pass.value, Toast.LENGTH_SHORT).show()
-                    onClick()
-                }) {
+                        onClick()
+                    }) {
                     Text("f")
                 }
             }
@@ -456,11 +638,11 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun S(o: () -> Unit){
+    fun S(o: () -> Unit) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
-        ){
+        ) {
             Column {
                 OutlinedTextField(
                     value = go.name.value,
@@ -489,7 +671,7 @@ class MainActivity : ComponentActivity() {
                         Text("pass")
                     }
                 )
-                Button({o()}) {
+                Button({ o() }) {
                     Text("s")
                 }
             }

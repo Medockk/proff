@@ -56,6 +56,7 @@ private const val postName = "name"
 private const val token = "sbp_v0_ffc4943eea2b120930ef51b98f004459fa5a650b"
 private var accessToken: String? = ""
 const val myEmail = "andreev.arsenij2020@gmail.com"
+var user = Users()
 
 class SupaBase {
     @OptIn(SupabaseInternal::class)
@@ -87,7 +88,7 @@ class SupaBase {
             val insertNewData = Users(
                 name = name, email = email, password = password
             )
-            client.from(postgrest).insert(insertNewData)
+            client.postgrest[postgrest].insert(insertNewData)
 
         } catch (ex: Exception) {
             Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
@@ -101,8 +102,8 @@ class SupaBase {
     ) {
         try {
             val client = createSupabaseClient()
-            val andCheckedUsers =
-                client.from(postgrest)
+            user =
+                client.postgrest[postgrest]
                     .select(columns = Columns.list("$postEmail, $postPassword")) {
                         filter {
                             and {
@@ -110,15 +111,15 @@ class SupaBase {
                                 eq(postPassword, password)
                             }
                         }
-                    }.decodeList<Users>()
-            if (andCheckedUsers.isEmpty()) {
-                val checkedUsers =
-                    client.from(postgrest)
+                    }.decodeSingle<Users>()
+            if (user.email.isEmpty() && user.password.isEmpty()) {
+                user =
+                    client.postgrest[postgrest]
                         .select(columns = Columns.list("$postEmail, $postPassword")) {
                             filter {
                                 eq(postEmail, email)
                             }
-                        }.decodeList<Users>()
+                        }.decodeSingle<Users>()
             }
 
         } catch (ex: Exception) {
@@ -145,13 +146,13 @@ class SupaBase {
     }
 
     suspend fun getData(
-        password: String,
         email: String,
+        password: String,
         context: Context
     ): Users? {
         try {
             val clientData = createSupabaseClient()
-            val data = clientData.from(postgrest).select {
+            val data = clientData.postgrest[postgrest].select {
                 filter {
                     or {
                         eq(postPassword, password)
@@ -160,8 +161,8 @@ class SupaBase {
                 }
             }.decodeSingle<Users>()
             return data
-        } catch (ex: Exception) {
-            Toast.makeText(context, ex.message.toString(), Toast.LENGTH_SHORT).show()
+        } catch (_: Exception) {
+            Toast.makeText(context, "user data not found", Toast.LENGTH_SHORT).show()
             return null
         }
     }
@@ -274,16 +275,17 @@ class SupaBase {
     //worked!!!!!
     suspend fun storage(
         iconName: String,
-        img: ByteArray?,
+        img: MutableState<ByteArray?>,
         context: Context
     ) {
         try {
             val client = createSupabaseClient()
             val bucket = client.storage.from("avatars")
-            if (img != null) {
-                bucket.upload("$iconName.png", img) {
+            if (img.value != null) {
+                bucket.upload("icon.png", img.value!!) {
                     upsert = true
                 }
+                Toast.makeText(context, "successful", Toast.LENGTH_SHORT).show()
             }
 
         } catch (ex: Exception) {

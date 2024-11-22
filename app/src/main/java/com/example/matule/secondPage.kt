@@ -44,6 +44,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -65,8 +66,9 @@ var userData = UserDataViewModel.UserData()
 
 @Composable
 fun SignIn(
-    onClick: () -> Unit, viewModel: MutableStateOf = viewModel(),
-    registerAccountOnClick: (() -> Unit)? = null
+    onClick: () -> Unit,
+    registerAccountOnClick: (() -> Unit)? = null,
+    forgotPasswordClick: () -> Unit
 ) {
     Column {
         SetIconScreen()
@@ -105,21 +107,23 @@ fun SignIn(
                                     SetTextField(
                                         text = "Email",
                                         placeholder = "xyz@gmail.com",
-                                        mutableState = viewModel.getMutableStateOf(email)!!,
+                                        mutableState = userData.email,
                                         keyboardType = KeyboardType.Email,
                                         size = 50
                                     )
                                     SetTextField(
                                         text = "Пароль",
                                         placeholder = "******",
-                                        mutableState = viewModel.getMutableStateOf(password)!!,
+                                        mutableState = userData.password,
                                         keyboardType = KeyboardType.Password,
                                         painter = painterResource(R.drawable.eye),
                                         size = 48
                                     )
                                 }
                             }
-                            Recover()
+                            Recover{
+                                forgotPasswordClick()
+                            }
 
                         }
                     }
@@ -136,7 +140,7 @@ fun SignIn(
 }
 
 @Composable
-fun Recover(text: String = "Восстановить") {
+fun Recover(text: String = "Восстановить", resetPasswordClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -150,14 +154,18 @@ fun Recover(text: String = "Восстановить") {
                 fontSize = 12.sp,
                 color = _707B81,
                 textAlign = TextAlign.Right
-            )
+            ),
+            modifier = Modifier.clickable {
+                resetPasswordClick()
+            }
         )
     }
 }
 
 @Composable
 fun SetButton(
-    s: String, mutableState: MutableState<Boolean>? = null, onClick: () -> Unit
+    s: String, mutableState: MutableState<Boolean>? = null, checked: Boolean? = null,
+    onClick: () -> Unit,
 ) {
     if (mutableState != null) {
         if (mutableState.value) {
@@ -169,9 +177,13 @@ fun SetButton(
             if (mutableState != null) {
                 mutableState.value = true
             } else {
-                if (userData.email.value != "" && userData.password.value != "") {
-                    onClick()
+                if (checked != null){
+                    if (userData.email.value != "" && userData.password.value != "" && userData.name.value != "" && checked) {
+                        onClick()
+                        return@Button
+                    }
                 }
+                onClick()
             }
         },
         modifier = Modifier
@@ -197,6 +209,15 @@ fun SetButton(
                 color = Color.White
             )
         )
+    }
+}
+
+@Preview
+@Composable
+private fun t() {
+    val t = remember { mutableStateOf(false) }
+    SetAlertDialog(t) {
+
     }
 }
 
@@ -333,7 +354,7 @@ fun RegisterAccount(
                     )
                 )
             }
-            SetButton("Зарегистрироваться", onClick = onClick)
+            SetButton("Зарегистрироваться", onClick = onClick, checked = checked.value)
 
             SetBottomText(
                 firstText = "Есть аккаунт?",

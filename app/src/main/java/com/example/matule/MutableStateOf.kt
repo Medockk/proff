@@ -9,9 +9,9 @@ import androidx.lifecycle.ViewModel
 class MutableStateOf : ViewModel() {
     @Composable
     fun getMutableStateOf(text: String): MutableState<String>? {
-        val nameText = remember { mutableStateOf("Эдуард риаир") }
-        val emailText = remember { mutableStateOf("m") }
-        val passwordText = remember { mutableStateOf("p") }
+        val nameText = remember { mutableStateOf("") }
+        val emailText = remember { mutableStateOf("") }
+        val passwordText = remember { mutableStateOf("") }
         val familiaText = remember { mutableStateOf("") }
         val addressText = remember { mutableStateOf("") }
         val phoneText = remember { mutableStateOf("") }
