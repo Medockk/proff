@@ -102,12 +102,14 @@ class MainActivity : ComponentActivity() {
                                     context = this@MainActivity
                                 )
                                 if (o != null) {
-                                    if (o.email != "" && o.password != "") {
+                                    if (o.email == userData.email.value && o.password == userData.password.value) {
                                         navController.navigate(Navigation.Home.route) {
                                             popUpTo(Navigation.SignIn.route) {
                                                 inclusive = true
                                             }
                                         }
+                                    }else{
+                                        Toast.makeText(this@MainActivity, "user data not found", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }
@@ -216,8 +218,42 @@ class MainActivity : ComponentActivity() {
                                     inclusive = true
                                 }
                             }
+                        },
+                        outdoorClick = {
+                            navController.navigate(Navigation.ListingOutDoor.route){
+                                popUpTo(Navigation.Home.route){
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        searchClick = {
+                            navController.navigate(Navigation.Search.route){
+                                popUpTo(Navigation.Home.route){
+                                    inclusive = true
+                                }
+                            }
                         }
                     )
+                }
+                composable(Navigation.Search.route){
+                    Search(
+                        backOnClick = {
+                            navController.navigate(Navigation.Home.route){
+                                popUpTo(Navigation.Search.route){
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.ListingOutDoor.route){
+                    ListingOutDoor {
+                        navController.navigate(Navigation.Home.route){
+                            popUpTo(Navigation.ListingOutDoor.route){
+                                inclusive = true
+                            }
+                        }
+                    }
                 }
                 composable(Navigation.Orders.route) {
                     Orders {

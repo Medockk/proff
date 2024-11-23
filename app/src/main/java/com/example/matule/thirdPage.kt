@@ -39,6 +39,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -69,6 +71,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -134,14 +137,19 @@ import ru.sulgik.mapkit.map.toCommon
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun o() {
-    Home({},{},{}, {}) { }
+    Home({}, {}, {}, {}, {}, {}) { }
 }
+
 @Composable
-fun Home(favoriteOnClick: (() -> Unit),
-         myCartOnClick: (() -> Unit),
-         sideMenuClick: () -> Unit,
-         ordersOnClick: () -> Unit,
-         editProfileClick: () -> Unit) {
+fun Home(
+    favoriteOnClick: (() -> Unit),
+    myCartOnClick: (() -> Unit),
+    sideMenuClick: () -> Unit,
+    ordersOnClick: () -> Unit,
+    editProfileClick: () -> Unit,
+    outdoorClick: () -> Unit,
+    searchClick: () -> Unit
+) {
     BackGround()
     Column(
         modifier = Modifier
@@ -156,8 +164,10 @@ fun Home(favoriteOnClick: (() -> Unit),
             firstPage = true,
             sideMenuClick = sideMenuClick
         )
-        TopBarSearch()
-        Categories()
+        TopBarSearch(searchClick = searchClick)
+        Categories{
+            outdoorClick()
+        }
         TextAll("Популярное")
         BootCard(
             whitePlus = painterResource(R.drawable.white_plus),
@@ -179,7 +189,8 @@ fun Favorite(
     myCartOnClick: (() -> Unit),
     backOnClick: () -> Unit,
     ordersOnClick: () -> Unit,
-    editProfileClick: () -> Unit) {
+    editProfileClick: () -> Unit
+) {
     BackGround()
     Column(
         modifier = Modifier
@@ -475,13 +486,24 @@ fun TextAll(text: String) {
 }
 
 @Composable
-fun Categories(selectedOutdoorIcon: Boolean = false) {
+fun Categories(
+    selectedOutdoorIcon: Boolean = false,
+    outdoorClick: (() -> Unit)? = null
+) {
     val f0 = remember { mutableStateOf(false) }
     val f1 = remember { mutableStateOf(false) }
     val f2 = remember { mutableStateOf(false) }
     val f3 = remember { mutableStateOf(false) }
+
+    if (selectedOutdoorIcon){
+        f0.value = false
+        f1.value = true
+        f2.value = false
+        f3.value = false
+    }
     Column(
-        Modifier.fillMaxWidth()
+        Modifier
+            .fillMaxWidth()
             .padding(start = 20.dp)
     ) {
         Text(
@@ -494,11 +516,13 @@ fun Categories(selectedOutdoorIcon: Boolean = false) {
             ),
             modifier = Modifier.padding(bottom = 15.dp)
         )
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween){
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.3f)
@@ -511,27 +535,25 @@ fun Categories(selectedOutdoorIcon: Boolean = false) {
                             Color.White
                         }
                     )
-                    .size(108.dp, 40.dp),
-                contentAlignment = Alignment.Center
-            ){
-                TextButton(
-                    onClick = {
+                    .size(108.dp, 40.dp)
+                    .clickable {
                         f0.value = true
                         f1.value = false
                         f2.value = false
                         f3.value = false
-                    }) {
-                    Text(
-                        text = "Все",
-                        color = if (f0.value) {
-                            Color.White
-                        }else{
-                            Color.Black
-                        }
-                    )
-                }
-                Spacer(Modifier.width(20.dp))
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Все",
+                    color = if (f0.value) {
+                        Color.White
+                    } else {
+                        Color.Black
+                    }
+                )
             }
+            Spacer(Modifier.width(20.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
@@ -544,27 +566,27 @@ fun Categories(selectedOutdoorIcon: Boolean = false) {
                             Color.White
                         }
                     )
-                    .size(108.dp, 40.dp),
-                contentAlignment = Alignment.Center
-            ){
-                TextButton(
-                    onClick = {
+                    .size(108.dp, 40.dp)
+                    .clickable {
                         f0.value = false
                         f1.value = true
                         f2.value = false
                         f3.value = false
-                    }) {
-                    Text(
-                        text = "Outdoor",
-                        color = if (f1.value) {
-                            Color.White
-                        }else{
-                            Color.Black
-                        }
-                    )
-                }
-                Spacer(Modifier.fillMaxWidth(0.2f))
+                        outdoorClick?.invoke()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Outdoor",
+                    color = if (f1.value) {
+                        Color.White
+                    } else {
+                        Color.Black
+                    }
+                )
+
             }
+            Spacer(Modifier.width(20.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -577,30 +599,29 @@ fun Categories(selectedOutdoorIcon: Boolean = false) {
                             Color.White
                         }
                     )
-                    .size(108.dp, 40.dp),
-                contentAlignment = Alignment.Center
-            ){
-                TextButton(
-                    onClick = {
+                    .size(108.dp, 40.dp)
+                    .clickable {
                         f0.value = false
                         f1.value = false
                         f2.value = true
                         f3.value = false
-                    }) {
-                    Text(
-                        text = "Tennis",
-                        color = if (f2.value) {
-                            Color.White
-                        }else{
-                            Color.Black
-                        }
-                    )
-                }
-                Spacer(Modifier.fillMaxWidth(0.3f))
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Tennis",
+                    color = if (f2.value) {
+                        Color.White
+                    } else {
+                        Color.Black
+                    }
+                )
+
             }
+            Spacer(Modifier.width(20.dp))
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(1.2f)
+                    .fillMaxWidth(1.0f)
                     .clip(RoundedCornerShape(8.dp))
                     .shadow(2.dp)
                     .background(
@@ -610,25 +631,23 @@ fun Categories(selectedOutdoorIcon: Boolean = false) {
                             Color.White
                         }
                     )
-                    .size(108.dp, 40.dp),
-                contentAlignment = Alignment.Center
-            ){
-                TextButton(
-                    onClick = {
+                    .size(108.dp, 40.dp)
+                    .clickable {
                         f0.value = false
                         f1.value = false
                         f2.value = false
                         f3.value = true
-                    }) {
-                    Text(
-                        text = "Running",
-                        color = if (f3.value) {
-                            Color.White
-                        }else{
-                            Color.Black
-                        }
-                    )
-                }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Running",
+                    color = if (f3.value) {
+                        Color.White
+                    } else {
+                        Color.Black
+                    }
+                )
             }
         }
     }
@@ -773,7 +792,9 @@ fun TopBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarSearch(painter: Painter? = null, vm: MutableStateOf = viewModel()) {
+fun TopBarSearch(painter: Painter? = null, vm: MutableStateOf = viewModel(),
+                 searchClick: (() -> Unit)? = null) {
+    val searchPage = vm.get(enabled)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -781,7 +802,20 @@ fun TopBarSearch(painter: Painter? = null, vm: MutableStateOf = viewModel()) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
+        ElevatedCard(
+            onClick = if (searchClick != null){
+                {
+                    searchClick()
+                    searchPage!!.value = true
+                }
+            }else{{
+                searchPage!!.value = true
+            }},
+            enabled = !searchPage!!.value,
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = Color.White
+            ),
+            elevation = CardDefaults.elevatedCardElevation(4.dp),
             modifier = Modifier
                 .fillMaxWidth(
                     if (painter == null) {
@@ -791,7 +825,6 @@ fun TopBarSearch(painter: Painter? = null, vm: MutableStateOf = viewModel()) {
                     }
                 )
                 .clip(shape = RoundedCornerShape(14.dp))
-                .shadow(4.dp)
                 .background(Color.White)
         ) {
             Row(
@@ -809,51 +842,20 @@ fun TopBarSearch(painter: Painter? = null, vm: MutableStateOf = viewModel()) {
                                 modifier = Modifier.size(24.dp)
                             )
                         }
-                        val search = vm.getMutableStateOf(search)
-                        val expanded = remember {
-                            mutableStateOf(
-                                false
-                            )
-                        }
-//                        SearchBar(
-//                            expanded = expanded.value,
-//                            onExpandedChange = {
-//                                expanded.value = false
-//                            },
-//                                inputField = {
-//                                    SearchBarDefaults.InputField(
-//                                        query = search!!.value,
-//                                        onQueryChange = {
-//                                            search.value = it
-//                                        },
-//                                        onSearch = {
-//                                            search.value = it
-//                                        },
-//                                        expanded = expanded.value,
-//                                        onExpandedChange = {
-//                                            expanded.value = false
-//                                        }
-//                                    )
-//                                },
-//                            colors = SearchBarColors(
-//                                containerColor = Color.White,
-//                                dividerColor = Color.Transparent
-//                            )
-//                        ) {
-//
-//                        }
+                        val search = remember { mutableStateOf("") }
                         TextField(
-                            value = search!!.value,
-                            onValueChange = { text ->
-                                search.value = text
-                            },
+                            value = search.value,
+                            onValueChange = {search.value = it},
+                            enabled = searchPage.value,
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent
                             ),
-                            label = {
+                            placeholder = {
                                 Text(
                                     text = "Поиск",
                                     style = TextStyle(
@@ -863,7 +865,8 @@ fun TopBarSearch(painter: Painter? = null, vm: MutableStateOf = viewModel()) {
                                         color = _6A6A6A
                                     )
                                 )
-                            }
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -1163,7 +1166,7 @@ fun BottomCartCard(buttonText: String, showAD: Boolean = false, btnClick: () -> 
                 {
                     if (showAD) {
                         showAlertDialog.value = !showAlertDialog.value
-                    }else{
+                    } else {
                         btnClick()
                     }
                 }, modifier = Modifier
@@ -1910,7 +1913,7 @@ fun YandexMapKit(
                     }
                     if (selectedPlace != null) {
                         map1.mapObjects.remove(selectedPlace as MapObject)
-                        if (carPolylineMapObject != null && carPolylineMapObject!!.isValid){
+                        if (carPolylineMapObject != null && carPolylineMapObject!!.isValid) {
                             map1.toNative().mapObjects.remove(carPolylineMapObject as com.yandex.mapkit.map.MapObject)
                             carRoute(
                                 com.yandex.mapkit.geometry.Point(latitude.value, longitude.value),
@@ -1919,7 +1922,7 @@ fun YandexMapKit(
                                 context
                             )
                         }
-                        if (walkPolylineMapObject != null && walkPolylineMapObject!!.isValid){
+                        if (walkPolylineMapObject != null && walkPolylineMapObject!!.isValid) {
                             map1.toNative().mapObjects.remove(walkPolylineMapObject as com.yandex.mapkit.map.MapObject)
                             walkRoute(
                                 com.yandex.mapkit.geometry.Point(latitude.value, longitude.value),

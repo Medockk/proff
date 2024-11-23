@@ -70,6 +70,7 @@ fun SignIn(
     registerAccountOnClick: (() -> Unit)? = null,
     forgotPasswordClick: () -> Unit
 ) {
+    val error = remember { mutableStateOf(false) }
     Column {
         SetIconScreen()
         Column(
@@ -109,7 +110,8 @@ fun SignIn(
                                         placeholder = "xyz@gmail.com",
                                         mutableState = userData.email,
                                         keyboardType = KeyboardType.Email,
-                                        size = 50
+                                        size = 50,
+                                        error = error
                                     )
                                     SetTextField(
                                         text = "Пароль",
@@ -117,7 +119,8 @@ fun SignIn(
                                         mutableState = userData.password,
                                         keyboardType = KeyboardType.Password,
                                         painter = painterResource(R.drawable.eye),
-                                        size = 48
+                                        size = 48,
+                                        error = error
                                     )
                                 }
                             }
@@ -127,7 +130,7 @@ fun SignIn(
 
                         }
                     }
-                    SetButton(s = "Войти", onClick = onClick)
+                    SetButton(s = "Войти", onClick = onClick, error = error)
                 }
             }
             SetBottomText(
@@ -165,6 +168,7 @@ fun Recover(text: String = "Восстановить", resetPasswordClick: () ->
 @Composable
 fun SetButton(
     s: String, mutableState: MutableState<Boolean>? = null, checked: Boolean? = null,
+    error: MutableState<Boolean> = mutableStateOf(false),
     onClick: () -> Unit,
 ) {
     if (mutableState != null) {
@@ -179,9 +183,17 @@ fun SetButton(
             } else {
                 if (checked != null){
                     if (userData.email.value != "" && userData.password.value != "" && userData.name.value != "" && checked) {
+                        if (userData.password.value.length < 8){
+                            error.value = true
+                            return@Button
+                        }
                         onClick()
                         return@Button
                     }
+                }
+                if (userData.password.value.length < 8){
+                    error.value = true
+                    return@Button
                 }
                 onClick()
             }
@@ -370,8 +382,7 @@ fun RegisterData(
     text: String,
     mutableState: MutableState<String>,
     blackText: Boolean = false,
-    imageVector: ImageVector? = null,
-    data: Users? = null
+    imageVector: ImageVector? = null
 ) {
     Column {
         Box(
@@ -387,8 +398,7 @@ fun RegisterData(
                     keyboardType = KeyboardType.Text,
                     size = 50,
                     blackText = blackText,
-                    imageVector = imageVector,
-                    data = data
+                    imageVector = imageVector
                 )
             }
         }
@@ -520,7 +530,7 @@ fun SetTextField(
     size: Int = 0,
     blackText: Boolean = false,
     imageVector: ImageVector? = null,
-    data: Users? = null
+    error: MutableState<Boolean> = mutableStateOf(false)
 ) {
     Box(modifier = Modifier.padding(top = 30.dp)) {
         Column {
@@ -543,7 +553,7 @@ fun SetTextField(
                 keyboardType = keyboardType,
                 size = size,
                 imageVector = imageVector,
-                data = data
+                error = error
             )
         }
     }
@@ -557,7 +567,7 @@ fun TextFieldForNameOrECT(
     keyboardType: KeyboardType,
     size: Int = 0,
     imageVector: ImageVector? = null,
-    data: Users? = null
+    error: MutableState<Boolean> = mutableStateOf(false)
 ) {
     Box {
         TextField(
@@ -570,6 +580,7 @@ fun TextFieldForNameOrECT(
             onValueChange = { text ->
                 mutableState.value = text
             },
+            isError = error.value,
             placeholder = {
                 if (painter == null) {
                     Text(

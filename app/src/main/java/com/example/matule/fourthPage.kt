@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,6 +33,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -94,10 +97,9 @@ fun Background() {
 @Composable
 private fun t() {
     val c = LocalContext.current
-    Profile(c, Users()){
-
-    }
+    SideMenu({}, {}, {}, {}, {}, {}) { }
 }
+
 @Composable
 fun SideMenu(
     profileClick: () -> Unit,
@@ -111,8 +113,8 @@ fun SideMenu(
     Background()
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(start = 30.dp, bottom = 100.dp, top = 50.dp),
+            .fillMaxHeight()
+            .padding(start = 20.dp, bottom = 100.dp, top = 50.dp),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.SpaceAround
     ) {
@@ -198,107 +200,131 @@ fun ProfileIcon(
     settingClick: () -> Unit,
     signOutClick: () -> Unit
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable {
-            profileClick()
-        }) {
-        Icon(
-            Icons.Default.Person,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.weight(0.1f)
-        )
-        Spacer(Modifier.weight(0.01f))
-        Text(
-            "Профиль", style = Raleway50016White,
-            modifier = Modifier.weight(0.89f)
-        )
-    }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable {
-            cartClick()
-        }
-    ) {
-        Image(
-            painter = painterResource(R.drawable.shop_bag2), contentDescription = null,
-            colorFilter = ColorFilter.tint(Color.White),
-            modifier = Modifier
-                .size(24.dp)
-                .weight(0.1f)
-        )
-        Spacer(Modifier.weight(0.01f))
-        Text(modifier = Modifier.weight(0.89f), text = "Корзина", style = Raleway50016White)
-    }
-    Row(verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable {
-            favoriteClick()
-        }) {
-        Image(
-            painterResource(R.drawable.unselected_heart),
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(Color.White),
-            modifier = Modifier
-                .size(24.dp)
-                .weight(0.1f)
-        )
-        Spacer(Modifier.weight(0.01f))
-        Text(
-            modifier = Modifier.weight(0.89f), text = "Избранное",
-            style = Raleway50016White
-        )
-    }
-    Row(verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable {
-            ordersClick()
-        }) {
-        Image(
-            painterResource(R.drawable.order_car),
-            colorFilter = ColorFilter.tint(Color.White),
-            contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-                .weight(0.1f)
-        )
-        Spacer(Modifier.weight(0.01f))
-        Text(
-            modifier = Modifier.weight(0.89f), text = "Заказы",
-            style = Raleway50016White
-        )
-    }
-    Row(verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable {
-            notificationClick()
-        }) {
-        Icon(
-            Icons.Default.Notifications,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier
-                .size(24.dp)
-                .weight(0.1f)
-        )
-        Spacer(Modifier.weight(0.01f))
-        Text(modifier = Modifier.weight(0.89f), text = "Уведомления", style = Raleway50016White)
-    }
-    Column {
+    Button(
+        { profileClick() },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent
+        ),
+        modifier = Modifier.fillMaxWidth(0.55f)) {
         Row(verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable {
-                settingClick()
-            }) {
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.fillMaxWidth()) {
             Icon(
-                Icons.Default.Settings,
+                Icons.Default.Person,
+                contentDescription = null,
+                tint = Color.White
+            )
+            Spacer(Modifier.width(20.dp))
+            Text(
+                "Профиль",
+                style = Raleway50016White,
+            )
+        }
+    }
+
+    Button({cartClick()},
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent
+        ),
+        modifier = Modifier.fillMaxWidth(0.55f)) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.fillMaxWidth()) {
+            Image(
+                painter = painterResource(R.drawable.shop_bag2), contentDescription = null,
+                colorFilter = ColorFilter.tint(Color.White),
+                modifier = Modifier
+                    .size(24.dp)
+            )
+            Spacer(Modifier.width(20.dp))
+            Text(text = "Корзина", style = Raleway50016White)
+        }
+    }
+    Button({favoriteClick()},
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent
+        ),
+        modifier = Modifier.fillMaxWidth(0.55f)) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.fillMaxWidth()) {
+            Image(
+                painterResource(R.drawable.unselected_heart),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(Color.White),
+                modifier = Modifier
+                    .size(24.dp)
+            )
+            Spacer(Modifier.width(20.dp))
+            Text(
+                text = "Избранное",
+                style = Raleway50016White
+            )
+        }
+    }
+    Button({ordersClick()},
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent
+        ),
+        modifier = Modifier.fillMaxWidth(0.55f)) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.fillMaxWidth()) {
+            Image(
+                painterResource(R.drawable.order_car),
+                colorFilter = ColorFilter.tint(Color.White),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(24.dp)
+            )
+            Spacer(Modifier.width(20.dp))
+            Text(
+                text = "Заказы",
+                style = Raleway50016White
+            )
+        }
+    }
+    Button({notificationClick()},
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent
+        ),
+        modifier = Modifier.fillMaxWidth(0.55f)) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.fillMaxWidth()) {
+            Icon(
+                Icons.Default.Notifications,
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier
                     .size(24.dp)
-                    .weight(0.1f)
             )
-            Spacer(Modifier.weight(0.01f))
-            Text(
-                modifier = Modifier.weight(0.89f), text = "Настройки",
-                style = Raleway50016White
-            )
+            Spacer(Modifier.width(20.dp))
+            Text(text = "Уведомления", style = Raleway50016White)
+        }
+    }
+    Column {
+        Button({settingClick()},
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            ),
+            modifier = Modifier.fillMaxWidth(0.55f)) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    Icons.Default.Settings,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(24.dp)
+                )
+                Spacer(Modifier.width(20.dp))
+                Text(
+                    text = "Настройки",
+                    style = Raleway50016White
+                )
+            }
         }
         Spacer(
             Modifier
@@ -307,23 +333,27 @@ fun ProfileIcon(
                 .fillMaxWidth()
                 .height(1.dp)
         )
-        Row(verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable {
-                signOutClick()
-            }) {
-            Icon(
-                painter = painterResource(R.drawable.exid),
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier
-                    .size(24.dp)
-                    .weight(0.1f)
-            )
-            Spacer(Modifier.weight(0.01f))
-            Text(
-                modifier = Modifier.weight(0.89f), text = "Выйти",
-                style = Raleway50016White
-            )
+        Button({signOutClick()},
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            ),
+            modifier = Modifier.fillMaxWidth(0.55f)) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    painter = painterResource(R.drawable.exid),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(24.dp)
+                )
+                Spacer(Modifier.width(20.dp))
+                Text(
+                    text = "Выйти",
+                    style = Raleway50016White
+                )
+            }
         }
     }
 }
@@ -488,20 +518,20 @@ fun Profile(context: Context, data: Users?, backOnClick: () -> Unit) {
                 ) {
                     RegisterData(
                         text = "Имя", userData.name, true,
-                        imageVector = Icons.Default.Check, data = data
+                        imageVector = Icons.Default.Check
                     )
                     RegisterData(
                         text = "Фамилия", userData.familia, true,
-                        imageVector = Icons.Default.Check, data = data
+                        imageVector = Icons.Default.Check
                     )
                     RegisterData(
                         text = "Адрес", userData.address, true,
-                        imageVector = Icons.Default.Check, data = data
+                        imageVector = Icons.Default.Check
                     )
 
                     RegisterData(
                         text = "Телефон", userData.phone, true,
-                        imageVector = Icons.Default.Check, data = data
+                        imageVector = Icons.Default.Check
                     )
 
                 }

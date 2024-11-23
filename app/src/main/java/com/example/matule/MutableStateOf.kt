@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 
+const val enabled = "enabled"
+
 class MutableStateOf : ViewModel() {
     @Composable
     fun getMutableStateOf(text: String): MutableState<String>? {
@@ -24,6 +26,15 @@ class MutableStateOf : ViewModel() {
             address -> return addressText
             phone -> return phoneText
             search -> return searchText
+        }
+        return null
+    }
+
+    @Composable
+    fun get(text: String):MutableState<Boolean>?{
+        val enabled1 = remember { mutableStateOf(false) }
+        when(text){
+            enabled -> return enabled1
         }
         return null
     }
