@@ -232,6 +232,49 @@ class MainActivity : ComponentActivity() {
                                     inclusive = true
                                 }
                             }
+                        },
+                        showDetailsClick = {
+                            navController.navigate(Navigation.Details.route){
+                                popUpTo(Navigation.Home.route){
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        popularClick = {
+                            navController.navigate(Navigation.Popular.route){
+                                popUpTo(Navigation.Home.route){
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.Details.route){
+                    Details(
+                        backOnClick = {
+                            navController.navigate(Navigation.Home.route){
+                                popUpTo(Navigation.Details.route){
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Navigation.Popular.route){
+                    Popular(
+                        backOnClick = {
+                            navController.navigate(Navigation.Home.route){
+                                popUpTo(Navigation.Popular.route){
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        showDetailsClick = {
+                            navController.navigate(Navigation.Details.route){
+                                popUpTo(Navigation.Popular.route){
+                                    inclusive = true
+                                }
+                            }
                         }
                     )
                 }
@@ -247,13 +290,22 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 composable(Navigation.ListingOutDoor.route){
-                    ListingOutDoor {
-                        navController.navigate(Navigation.Home.route){
-                            popUpTo(Navigation.ListingOutDoor.route){
-                                inclusive = true
+                    ListingOutDoor(
+                        backOnClick = {
+                            navController.navigate(Navigation.Home.route){
+                                popUpTo(Navigation.ListingOutDoor.route){
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        showDetailsClick = {
+                            navController.navigate(Navigation.Details.route){
+                                popUpTo(Navigation.Popular.route){
+                                    inclusive = true
+                                }
                             }
                         }
-                    }
+                    )
                 }
                 composable(Navigation.Orders.route) {
                     Orders {
@@ -284,6 +336,7 @@ class MainActivity : ComponentActivity() {
                 }
                 composable(Navigation.SideMenu.route) {
                     SideMenu(
+                        storageBitMap = storageIcon(),
                         profileClick = {
                             navController.navigate(Navigation.Profile.route) {
                                 popUpTo(Navigation.SideMenu.route) {
@@ -369,6 +422,13 @@ class MainActivity : ComponentActivity() {
                         editProfileClick = {
                             navController.navigate(Navigation.EditProfile.route) {
                                 popUpTo(Navigation.Favorite.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        showDetailsClick = {
+                            navController.navigate(Navigation.Details.route){
+                                popUpTo(Navigation.Popular.route){
                                     inclusive = true
                                 }
                             }
@@ -711,6 +771,14 @@ class MainActivity : ComponentActivity() {
                     Text("s")
                 }
             }
+        }
+    }
+
+    init {
+        val supa = SupaBase()
+        lifecycleScope.launch {
+            val icon = supa.getImageFromStorage()
+            storageIcon(icon)
         }
     }
 

@@ -70,6 +70,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -134,12 +135,6 @@ import ru.sulgik.mapkit.map.PolylineMapObject
 import ru.sulgik.mapkit.map.fromResource
 import ru.sulgik.mapkit.map.toCommon
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun o() {
-    Home({}, {}, {}, {}, {}, {}) { }
-}
-
 @Composable
 fun Home(
     favoriteOnClick: (() -> Unit),
@@ -148,7 +143,9 @@ fun Home(
     ordersOnClick: () -> Unit,
     editProfileClick: () -> Unit,
     outdoorClick: () -> Unit,
-    searchClick: () -> Unit
+    searchClick: () -> Unit,
+    showDetailsClick: () -> Unit,
+    popularClick: () -> Unit
 ) {
     BackGround()
     Column(
@@ -168,12 +165,13 @@ fun Home(
         Categories{
             outdoorClick()
         }
-        TextAll("Популярное")
+        TextAll("Популярное", popularClick = popularClick)
         BootCard(
             whitePlus = painterResource(R.drawable.white_plus),
-            whiteCart = painterResource(R.drawable.white_cart)
+            whiteCart = painterResource(R.drawable.white_cart),
+            showDetailsClick = showDetailsClick
         )
-        TextAll("Акции")
+        TextAll("Акции", popularClick = popularClick)
         CardAction()
         BottomVector(
             true, favoriteOnClick = favoriteOnClick,
@@ -189,7 +187,8 @@ fun Favorite(
     myCartOnClick: (() -> Unit),
     backOnClick: () -> Unit,
     ordersOnClick: () -> Unit,
-    editProfileClick: () -> Unit
+    editProfileClick: () -> Unit,
+    showDetailsClick: () -> Unit
 ) {
     BackGround()
     Column(
@@ -210,12 +209,19 @@ fun Favorite(
         ) {
             BootCard(
                 whitePlus = painterResource(R.drawable.white_plus),
-                whiteCart = painterResource(R.drawable.white_cart)
+                whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick
             )
             Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(whiteCart = painterResource(R.drawable.white_cart))
+            BootCard(
+                whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick
+            )
             Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(whiteCart = painterResource(R.drawable.white_cart))
+            BootCard(
+                whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick
+            )
             Spacer(Modifier.padding(bottom = 10.dp))
         }
         BottomVector(
@@ -265,7 +271,11 @@ fun CardAction() {
 }
 
 @Composable
-fun BootCard(whitePlus: Painter? = null, whiteCart: Painter) {
+fun BootCard(
+    whitePlus: Painter? = null,
+    whiteCart: Painter,
+    showDetailsClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -276,6 +286,9 @@ fun BootCard(whitePlus: Painter? = null, whiteCart: Painter) {
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
                 .background(Color.White)
+                .clickable {
+                    showDetailsClick()
+                }
         ) {
             Column(
                 Modifier
@@ -367,6 +380,9 @@ fun BootCard(whitePlus: Painter? = null, whiteCart: Painter) {
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
                 .background(Color.White)
+                .clickable {
+                    showDetailsClick()
+                }
         ) {
             Column(
                 Modifier
@@ -457,12 +473,13 @@ fun BootCard(whitePlus: Painter? = null, whiteCart: Painter) {
 }
 
 @Composable
-fun TextAll(text: String) {
+fun TextAll(text: String, popularClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = text,
@@ -480,7 +497,10 @@ fun TextAll(text: String) {
                 fontWeight = FontWeight.W500,
                 fontSize = 12.sp,
                 color = _48B2E7
-            )
+            ),
+            modifier = Modifier.clickable {
+                popularClick()
+            }
         )
     }
 }
@@ -2331,7 +2351,7 @@ fun Recent(time: String) {
 }
 
 @Composable
-fun Popular(backOnClick: () -> Unit) {
+fun Popular(backOnClick: () -> Unit, showDetailsClick: () -> Unit) {
     BackGround()
     Column(
         modifier = Modifier
@@ -2352,19 +2372,22 @@ fun Popular(backOnClick: () -> Unit) {
         ) {
             BootCard(
                 whitePlus = painterResource(R.drawable.white_plus),
-                whiteCart = painterResource(R.drawable.white_cart)
+                whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick
             )
             Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(whiteCart = painterResource(R.drawable.white_cart))
+            BootCard(whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick)
             Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(whiteCart = painterResource(R.drawable.white_cart))
+            BootCard(whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick)
             Spacer(Modifier.padding(bottom = 10.dp))
         }
     }
 }
 
 @Composable
-fun ListingOutDoor(backOnClick: () -> Unit) {
+fun ListingOutDoor(backOnClick: () -> Unit, showDetailsClick: () -> Unit) {
     val screen = LocalConfiguration.current.screenWidthDp / 1.65
     BackGround()
     Column(
@@ -2386,14 +2409,25 @@ fun ListingOutDoor(backOnClick: () -> Unit) {
         Column(Modifier.padding(bottom = 25.dp)) {
             BootCard(
                 whitePlus = painterResource(R.drawable.white_plus),
-                whiteCart = painterResource(R.drawable.white_cart)
+                whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick
             )
             Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(whiteCart = painterResource(R.drawable.white_cart))
+            BootCard(whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick)
             Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(whiteCart = painterResource(R.drawable.white_cart))
+            BootCard(whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick)
             Spacer(Modifier.padding(bottom = 10.dp))
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun p() {
+    Details {
+
     }
 }
 
@@ -2419,17 +2453,156 @@ fun Details(backOnClick: () -> Unit) {
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             InfoAboutSelectedBoot()
-            SelectedBootImage(painterResource(R.drawable.nike_7))
-            ExperimentalSlider()
+            val f0 = remember { mutableStateOf(true) }
+            val f1 = remember { mutableStateOf(false) }
+            val f2 = remember { mutableStateOf(false) }
+            val f3 = remember { mutableStateOf(false) }
+            val f4 = remember { mutableStateOf(false) }
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Image(
+                    painter = if (f0.value){
+                        painterResource(R.drawable.nike_7)
+                    }else if (f1.value){
+                        painterResource(R.drawable.default_choosed_boot)
+                    }else if (f2.value){
+                        painterResource(R.drawable.nike_5)
+                    }else if (f3.value){
+                        painterResource(R.drawable.boot_image)
+                    }else if (f4.value){
+                        painterResource(R.drawable.nike_6)
+                    }else{
+                        painterResource(R.drawable.nike_7)
+                    },
+                    contentDescription = "sliderBoot",
+                    contentScale = ContentScale.Crop,
+                    modifier = if (f0.value){
+                        Modifier.fillMaxWidth(0.9f)
+                    }else if (f1.value){
+                        Modifier.fillMaxWidth(0.9f)
+                    }else{
+                        Modifier.fillMaxWidth()
+                    }
+                )
+                Box(
+                    contentAlignment = Alignment.BottomCenter,
+                    modifier = Modifier.fillMaxWidth()
+                        .fillMaxHeight(if (f2.value){0.45f}else{0.6f})
+                ){
+                    ExperimentalSlider()
+                }
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                ChooseBoot(painterResource(R.drawable.a))
-                ChooseBoot(painterResource(R.drawable.nike_4))
-                ChooseBoot(painterResource(R.drawable.nike_5))
-                ChooseBoot(painterResource(R.drawable.nike_1))
-                ChooseBoot(painterResource(R.drawable.nike_6))
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .clickable {
+                            f0.value = true
+                            f1.value = false
+                            f2.value = false
+                            f3.value = false
+                            f4.value = false
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.nike_7),
+                        contentDescription = "nike",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(52.dp, 27.dp)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .clickable {
+                            f0.value = false
+                            f1.value = true
+                            f2.value = false
+                            f3.value = false
+                            f4.value = false
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.nike_4),
+                        contentDescription = "nike",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(0.75f)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .clickable {
+                            f0.value = false
+                            f1.value = false
+                            f2.value = true
+                            f3.value = false
+                            f4.value = false
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.nike_5),
+                        contentDescription = "nike",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(0.75f)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .clickable {
+                            f0.value = false
+                            f1.value = false
+                            f2.value = false
+                            f3.value = true
+                            f4.value = false
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.boot_image),
+                        contentDescription = "nike",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(45.dp, 21.dp)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .clickable {
+                            f0.value = false
+                            f1.value = false
+                            f2.value = false
+                            f3.value = false
+                            f4.value = true
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.nike_6),
+                        contentDescription = "nike",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(50.dp, 35.dp)
+                    )
+                }
             }
             Box {
                 Column {
@@ -2443,6 +2616,8 @@ fun Details(backOnClick: () -> Unit) {
                             fontSize = 14.sp,
                             color = _6A6A6A
                         ),
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "Подробнее",
@@ -2479,6 +2654,7 @@ fun ExperimentalSlider() {
             .border(width = 2.dp, brush = gradient, shape = CircleShape)
             .fillMaxWidth()
             .height(68.dp),
+        contentAlignment = Alignment.BottomCenter
     ) {
         Slider(
             value = sliderState.value,
@@ -2496,6 +2672,7 @@ fun ExperimentalSlider() {
                     )
                 )
             },
+            modifier = Modifier.offset(y = 23.dp),
             colors = SliderDefaults.colors(
                 activeTrackColor = Color.Transparent,
                 inactiveTickColor = Color.Transparent,
@@ -2543,17 +2720,7 @@ fun InfoAboutSelectedBoot() {
 
 @Composable
 fun SelectedBootImage(nike: Painter) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Image(
-            painter = nike,
-            contentDescription = "sliderBoot",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.size(270.dp, 170.dp)
-        )
-    }
+
 }
 
 @Composable
@@ -2623,20 +2790,6 @@ fun BottomLiked() {
 }
 
 @Composable
-fun ChooseBoot(nike: Painter) {
-    Box(
-        modifier = Modifier
-            .size(56.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-            .clickable {
+fun ChooseBoot(nike: Painter, chooseClick: () -> Unit) {
 
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = nike, contentDescription = "nike",
-            modifier = Modifier.size(50.dp)
-        )
-    }
 }

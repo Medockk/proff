@@ -97,11 +97,14 @@ fun Background() {
 @Composable
 private fun t() {
     val c = LocalContext.current
-    SideMenu({}, {}, {}, {}, {}, {}) { }
+    Profile(c, null, ){
+
+    }
 }
 
 @Composable
 fun SideMenu(
+    storageBitMap: Bitmap?,
     profileClick: () -> Unit,
     cartClick: () -> Unit,
     favoriteClick: () -> Unit,
@@ -118,7 +121,7 @@ fun SideMenu(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.SpaceAround
     ) {
-        ProfileImage(style = Raleway70020White)
+        ProfileImage(style = Raleway70020White, storageBitMap = storageBitMap)
         ProfileIcon(
             profileClick = profileClick,
             cartClick = cartClick,
@@ -126,7 +129,8 @@ fun SideMenu(
             ordersClick = ordersClick,
             notificationClick = notificationClick,
             settingClick = settingClick,
-            signOutClick = signOutClick
+            signOutClick = signOutClick,
+
         )
     }
 }
@@ -140,11 +144,7 @@ fun ProfileImage(
     val supa = SupaBase()
     Box {
         Column(
-            horizontalAlignment = if (center) {
-                Alignment.CenterHorizontally
-            } else {
-                Alignment.Start
-            }
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (img != null) { //при выборе изображения
                 if (img.value != null) {
@@ -456,7 +456,9 @@ fun Profile(context: Context, data: Users?, backOnClick: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceAround
         ) {
-            Column {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 if (bytes.value != null) {//выбор изображения
                     ProfileImage(
                         style = Raleway60020_2B2B2B, center = true,
