@@ -7,6 +7,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.matule.fontFamilyMasiva
+import com.example.matule.fontFamilyPoppins
 import com.example.matule.fontFamilyRaleway
 
 // Set of Material typography styles to start with
@@ -88,4 +89,94 @@ val Masiva40012_707B81 = TextStyle(
     fontWeight = FontWeight(400),
     fontSize = 12.sp,
     color = _707B81
+)
+val Raleway70065White = TextStyle(
+    fontFamily = fontFamilyRaleway,
+    fontWeight = FontWeight(700),
+    fontSize = 65.sp,
+    color = Color.White
+)
+val Raleway70034_ECECEC = TextStyle(
+    fontFamily = fontFamilyRaleway,
+    fontWeight = FontWeight(700),
+    fontSize = 34.sp,
+    color = _ECECEC
+)
+val Raleway30065White = TextStyle(
+    fontFamily = fontFamilyRaleway,
+    fontWeight = FontWeight(300),
+    fontSize = 65.sp,
+    color = Color.White
+)
+val Raleway90030_ECECEC = TextStyle(
+    fontFamily = fontFamilyRaleway,
+    fontWeight = FontWeight(900),
+    fontSize = 30.sp,
+    color = _ECECEC
+)
+val Raleway60014Black = TextStyle(
+    fontFamily = fontFamilyRaleway,
+    fontWeight = FontWeight(600),
+    fontSize = 14.sp,
+    color = Color.Black
+)
+val Raleway70032Black = TextStyle(
+    fontFamily = fontFamilyRaleway,
+    fontWeight = FontWeight(700),
+    fontSize = 32.sp,
+    color = Color.Black
+)
+val Poppins40016_D8D8D8 = TextStyle(
+    fontFamily = fontFamilyPoppins,
+    fontWeight = FontWeight(400),
+    fontSize = 16.sp,
+    color = _D8D8D8
+)
+val Poppins40016_707B81 = TextStyle(
+    fontFamily = fontFamilyPoppins,
+    fontWeight = FontWeight(400),
+    fontSize = 16.sp,
+    color = _707B81
+)
+val Poppins50014_6A6A6A = TextStyle(
+    fontFamily = fontFamilyPoppins,
+    fontWeight = FontWeight(500),
+    fontSize = 14.sp,
+    color = _6A6A6A
+)
+val Poppins40012_707B81 = TextStyle(
+    fontFamily = fontFamilyPoppins,
+    fontWeight = FontWeight(400),
+    fontSize = 12.sp,
+    color = _707B81
+)
+val Raleway50016Black = TextStyle(
+    fontFamily = fontFamilyRaleway,
+    fontWeight = FontWeight(500),
+    fontSize = 16.sp,
+    color = Color.Black
+)
+val Raleway40012_7D848D = TextStyle(
+    fontFamily = fontFamilyRaleway,
+    fontWeight = FontWeight(400),
+    fontSize = 12.sp,
+    color = _7D848D
+)
+val Raleway70016Black = TextStyle(
+    fontFamily = fontFamilyRaleway,
+    fontWeight = FontWeight(700),
+    fontSize = 16.sp,
+    color = Color.Black
+)
+val Raleway50016_6A6A6A = TextStyle(
+    fontFamily = fontFamilyRaleway,
+    fontWeight = FontWeight(500),
+    fontSize = 16.sp,
+    color = _6A6A6A
+)
+val Raleway60014White = TextStyle(
+    fontFamily = fontFamilyRaleway,
+    fontWeight = FontWeight(600),
+    fontSize = 14.sp,
+    color = Color.White
 )

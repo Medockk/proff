@@ -789,12 +789,20 @@ fun TopBar(
     }
 }
 
+@Composable
+fun getS(text: String): MutableState<Boolean>?{
+    val searchPage = remember { mutableStateOf(false) }
+    when (text){
+        enabled -> return searchPage
+    }
+    return null
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarSearch(painter: Painter? = null, vm: MutableStateOf = viewModel(),
+fun TopBarSearch(painter: Painter? = null,
                  searchClick: (() -> Unit)? = null) {
-    val searchPage = vm.get(enabled)
+    val searchPage = getS(enabled)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -805,8 +813,8 @@ fun TopBarSearch(painter: Painter? = null, vm: MutableStateOf = viewModel(),
         ElevatedCard(
             onClick = if (searchClick != null){
                 {
-                    searchClick()
                     searchPage!!.value = true
+                    searchClick()
                 }
             }else{{
                 searchPage!!.value = true

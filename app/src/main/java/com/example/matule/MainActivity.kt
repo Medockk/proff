@@ -55,11 +55,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             val coroutineScope = rememberCoroutineScope()
-            NavHost(navController = navController, startDestination = Navigation.firstPage.route) {
-                composable(Navigation.firstPage.route) {
-                    FirstPage {
+            NavHost(navController = navController, startDestination = Navigation.WearMe.route) {
+                composable(Navigation.WearMe.route) {
+                    WearMe {
                         navController.navigate(Navigation.onBoard1.route) {
-                            popUpTo(Navigation.firstPage.route) {
+                            popUpTo(Navigation.WearMe.route) {
                                 inclusive = true
                             }
                         }
