@@ -246,6 +246,13 @@ class MainActivity : ComponentActivity() {
                                     inclusive = true
                                 }
                             }
+                        },
+                        cartClick = {
+                            navController.navigate(Navigation.MyCart.route){
+                                popUpTo(Navigation.Home.route){
+                                    inclusive = true
+                                }
+                            }
                         }
                     )
                 }
@@ -253,6 +260,13 @@ class MainActivity : ComponentActivity() {
                     Details(
                         backOnClick = {
                             navController.navigate(Navigation.Home.route){
+                                popUpTo(Navigation.Details.route){
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        cartClick = {
+                            navController.navigate(Navigation.MyCart.route){
                                 popUpTo(Navigation.Details.route){
                                     inclusive = true
                                 }

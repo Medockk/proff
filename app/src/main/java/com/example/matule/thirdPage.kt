@@ -6,8 +6,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -25,7 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,7 +47,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -66,18 +65,17 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.matule.ui.theme.Raleway70015_48B2E7
 import com.example.matule.ui.theme.Raleway70020White
 import com.example.matule.ui.theme._000000
@@ -145,7 +143,8 @@ fun Home(
     outdoorClick: () -> Unit,
     searchClick: () -> Unit,
     showDetailsClick: () -> Unit,
-    popularClick: () -> Unit
+    popularClick: () -> Unit,
+    cartClick: () -> Unit
 ) {
     BackGround()
     Column(
@@ -159,10 +158,11 @@ fun Home(
             text = "Главная",
             painter2 = painterResource(R.drawable.shop_bag),
             firstPage = true,
-            sideMenuClick = sideMenuClick
+            sideMenuClick = sideMenuClick,
+            cartClick = cartClick
         )
         TopBarSearch(searchClick = searchClick)
-        Categories{
+        Categories {
             outdoorClick()
         }
         TextAll("Популярное", popularClick = popularClick)
@@ -190,40 +190,48 @@ fun Favorite(
     editProfileClick: () -> Unit,
     showDetailsClick: () -> Unit
 ) {
+    val b = LocalConfiguration.current.screenHeightDp / 8
     BackGround()
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 35.dp),
+            .padding(top = 35.dp, bottom = b.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        TopBar(
-            painter = painterResource(R.drawable.eye),
-            text = "Избранное",
-            painter2 = painterResource(R.drawable.unselected_heart),
-            icon = 1,
-            backOnClick = backOnClick
-        )
-        Column(
-            Modifier.padding(top = 20.dp)
-        ) {
-            BootCard(
-                whitePlus = painterResource(R.drawable.white_plus),
-                whiteCart = painterResource(R.drawable.white_cart),
-                showDetailsClick = showDetailsClick
+        item {
+            TopBar(
+                painter = painterResource(R.drawable.eye),
+                text = "Избранное",
+                painter2 = painterResource(R.drawable.unselected_heart),
+                icon = 1,
+                backOnClick = backOnClick
             )
-            Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(
-                whiteCart = painterResource(R.drawable.white_cart),
-                showDetailsClick = showDetailsClick
-            )
-            Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(
-                whiteCart = painterResource(R.drawable.white_cart),
-                showDetailsClick = showDetailsClick
-            )
-            Spacer(Modifier.padding(bottom = 10.dp))
+            Column(
+                Modifier.padding(top = 20.dp)
+            ) {
+                BootCard(
+                    whitePlus = painterResource(R.drawable.white_plus),
+                    whiteCart = painterResource(R.drawable.white_cart),
+                    showDetailsClick = showDetailsClick
+                )
+                Spacer(Modifier.padding(bottom = 10.dp))
+                BootCard(
+                    whiteCart = painterResource(R.drawable.white_cart),
+                    showDetailsClick = showDetailsClick
+                )
+                Spacer(Modifier.padding(bottom = 10.dp))
+                BootCard(
+                    whiteCart = painterResource(R.drawable.white_cart),
+                    showDetailsClick = showDetailsClick
+                )
+                Spacer(Modifier.padding(bottom = 10.dp))
+            }
         }
+    }
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter
+    ) {
         BottomVector(
             false,
             homeOnClick = homeOnClick, myCartOnClick = myCartOnClick,
@@ -316,7 +324,7 @@ fun BootCard(
                 Image(
                     painter = painterResource(R.drawable.boot_image),
                     contentDescription = "bootImg",
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Inside,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 10.dp)
@@ -410,7 +418,7 @@ fun BootCard(
                 Image(
                     painter = painterResource(R.drawable.boot_image),
                     contentDescription = "bootImg",
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Inside,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 10.dp)
@@ -515,7 +523,7 @@ fun Categories(
     val f2 = remember { mutableStateOf(false) }
     val f3 = remember { mutableStateOf(false) }
 
-    if (selectedOutdoorIcon){
+    if (selectedOutdoorIcon) {
         f0.value = false
         f1.value = true
         f2.value = false
@@ -697,7 +705,8 @@ fun TopBar(
     painter: Painter, text: String, painter2: Painter? = null,
     icon: Int? = null, firstPage: Boolean = false, cartScreen: Boolean = false,
     secondText: String? = null, backOnClick: (() -> Unit)? = null, context: Context? = null,
-    data: Users? = null, sideMenuClick: (() -> Unit)? = null, img: MutableState<ByteArray?>? = null
+    data: Users? = null, sideMenuClick: (() -> Unit)? = null, img: MutableState<ByteArray?>? = null,
+    cartClick: (() -> Unit)? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -713,7 +722,7 @@ fun TopBar(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-            backOnClick!!()
+            backOnClick?.invoke()
         }) {
             if (icon != null) {
                 Icon(
@@ -789,19 +798,26 @@ fun TopBar(
         }
         if (painter2 != null) {
             val heart = remember { mutableStateOf(false) }
-            IconButton(onClick = {
-                heart.value = !heart.value
-            }) {
+
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clickable {
+                        if (cartClick != null) {
+                            cartClick()
+                        } else {
+                            heart.value = !heart.value
+                        }
+                    }
+            ) {
                 Image(
                     painter = if (!heart.value) {
                         painter2
                     } else {
                         painterResource(R.drawable.red_heart)
                     }, contentDescription = "shoppingBag",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(Color.White)
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
             }
 
@@ -810,9 +826,9 @@ fun TopBar(
 }
 
 @Composable
-fun getS(text: String): MutableState<Boolean>?{
+fun getS(text: String): MutableState<Boolean>? {
     val searchPage = remember { mutableStateOf(false) }
-    when (text){
+    when (text) {
         enabled -> return searchPage
     }
     return null
@@ -820,8 +836,10 @@ fun getS(text: String): MutableState<Boolean>?{
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarSearch(painter: Painter? = null,
-                 searchClick: (() -> Unit)? = null) {
+fun TopBarSearch(
+    painter: Painter? = null,
+    searchClick: (() -> Unit)? = null
+) {
     val searchPage = getS(enabled)
     Row(
         modifier = Modifier
@@ -831,14 +849,16 @@ fun TopBarSearch(painter: Painter? = null,
         verticalAlignment = Alignment.CenterVertically
     ) {
         ElevatedCard(
-            onClick = if (searchClick != null){
+            onClick = if (searchClick != null) {
                 {
                     searchPage!!.value = true
                     searchClick()
                 }
-            }else{{
-                searchPage!!.value = true
-            }},
+            } else {
+                {
+                    searchPage!!.value = true
+                }
+            },
             enabled = !searchPage!!.value,
             colors = CardDefaults.elevatedCardColors(
                 containerColor = Color.White
@@ -873,7 +893,7 @@ fun TopBarSearch(painter: Painter? = null,
                         val search = remember { mutableStateOf("") }
                         TextField(
                             value = search.value,
-                            onValueChange = {search.value = it},
+                            onValueChange = { search.value = it },
                             enabled = searchPage.value,
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
@@ -1098,21 +1118,35 @@ fun MyCart(backOnClick: (() -> Unit)?, nextClick: () -> Unit) {
                 color = Color.Black
             )
         )
-        Column {
-            Box {
+        val xOffset = remember { mutableStateOf(0) }
+        val showAddView = remember { mutableStateOf(false) }
+        val showSubView = remember { mutableStateOf(false) }
+
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp)
+        ) {
+            Box(
+                modifier = getModifierDraggable(xOffset, showSubView, showAddView),
+                contentAlignment = Alignment.Center
+            ) {
                 PreviewBootCard(
                     painterResource(R.drawable.nike_1),
                     "Nike Club Max",
-                    "₽584.95"
+                    "₽584.95",
+                    showAddView = showAddView,
+                    showSubView = showSubView,
                 )
             }
-            Box(Modifier.padding(vertical = 15.dp)) {
-                PreviewBootCard(
-                    painterResource(R.drawable.nike_2),
-                    "Nike Air Max 200",
-                    "₽94.05", 1
-                )
-            }
+                Box(
+                    modifier = Modifier.padding(vertical = 15.dp)
+                ) {
+                    PreviewBootCard(
+                        painterResource(R.drawable.nike_2),
+                        "Nike Air Max 200",
+                        "₽94.05", 1
+                    )
+                }
+
             Box {
                 PreviewBootCard(
                     painterResource(R.drawable.nike_3),
@@ -1126,8 +1160,39 @@ fun MyCart(backOnClick: (() -> Unit)?, nextClick: () -> Unit) {
 }
 
 @Composable
+fun getModifierDraggable(xOffset: MutableState<Int>, showSubView: MutableState<Boolean>, showAddView: MutableState<Boolean>): Modifier {
+    return Modifier
+        .offset(
+            x = if (xOffset.value in 1..10) {
+                xOffset.value.dp
+            } else {
+                if (xOffset.value <= 0) {
+                    showSubView.value = true
+                    showAddView.value = false
+                    xOffset.value = -10
+                    xOffset.value.dp
+                } else {
+                    showSubView.value = false
+                    showAddView.value = true
+                    xOffset.value = 10
+                    xOffset.value.dp
+                }
+            }
+        )
+        .draggable(
+            state = rememberDraggableState { distance ->
+                xOffset.value += distance.toInt()
+            },
+            orientation = Orientation.Horizontal
+        )
+        .fillMaxWidth()
+}
+
+@Composable
 fun BottomCartCard(buttonText: String, showAD: Boolean = false, btnClick: () -> Unit) {
     val showAlertDialog = remember { mutableStateOf(false) }
+    val count = Count()
+    val tip = count.count.value * 584.95 + 94.05 + 74.95
     if (showAlertDialog.value) {
         ShowAlertDialog(showAlertDialog)
     }
@@ -1154,7 +1219,7 @@ fun BottomCartCard(buttonText: String, showAD: Boolean = false, btnClick: () -> 
                         SetChequeText(text = "Доставка")
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        SetChequePrice("₽753.95")
+                        SetChequePrice("$tip")
                         SetChequePrice("₽60.20")
                     }
                 }
@@ -1181,7 +1246,7 @@ fun BottomCartCard(buttonText: String, showAD: Boolean = false, btnClick: () -> 
                     )
                 )
                 Text(
-                    text = "₽814.15",
+                    text = "${tip + 60.2}",
                     style = TextStyle(
                         fontFamily = fontFamilyPoppins,
                         fontWeight = FontWeight.W500,
@@ -1221,6 +1286,8 @@ fun BottomCartCard(buttonText: String, showAD: Boolean = false, btnClick: () -> 
         }
     }
 }
+
+data class Count(val count: MutableState<Int> = mutableStateOf(1))
 
 @Composable
 fun ShowAlertDialog(showAlertDialog: MutableState<Boolean>) {
@@ -1323,73 +1390,94 @@ fun SetChequeText(text: String) {
 @Composable
 fun PreviewBootCard(
     painter: Painter, name: String, price: String,
-    item: Int = 0
+    item: Int = 0, showAddView: MutableState<Boolean> = mutableStateOf(false),
+    showSubView: MutableState<Boolean> = mutableStateOf(false)
 ) {
     val count = remember { mutableStateOf(1) }
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp),
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         if (item == 0) {
-            Box(
-                modifier = Modifier
-                    .padding(end = 10.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(_48B2E7),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(vertical = 5.dp)
+            if (showAddView.value && !showSubView.value) {
+                Box(
+                    modifier = Modifier
+                        .padding(end = 10.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(_48B2E7),
+                    contentAlignment = Alignment.Center
                 ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(vertical = 5.dp)
+                    ) {
+                        IconButton(
+                            {
+                                count.value++
+                                Count(count)
+                            },
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .size(29.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.white_plus),
+                                contentDescription = "add",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                        Text(
+                            text = count.value.toString(),
+                            style = TextStyle(
+                                color = Color.White,
+                                fontFamily = fontFamilyRaleway,
+                                fontWeight = FontWeight.W400,
+                                fontSize = 14.sp
+                            ),
+                            modifier = Modifier.padding(top = 5.dp)
+                        )
+                        IconButton({
+                            if (count.value > 0 || count.value != 0) {
+                                count.value--
+                            }
+                        }) {
+                            Box(
+                                modifier = Modifier
+                                    .size(14.dp, 1.dp)
+                                    .background(Color.White)
+                            )
+                        }
+                    }
+                }
+                BootCard(painter, name, price, Modifier.fillMaxWidth())
+            }
+            if (showSubView.value && !showAddView.value) {
+                BootCard(painter, name, price, Modifier.fillMaxWidth(0.85f))
+                Box{
                     IconButton(
-                        { count.value++ },
-                        modifier = Modifier
+                        {}, modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .size(29.dp)
+                            .background(_F87265)
+                            .padding(vertical = 25.dp)
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.white_plus),
-                            contentDescription = "add",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(14.dp)
-                        )
-                    }
-                    Text(
-                        text = count.value.toString(),
-                        style = TextStyle(
-                            color = Color.White,
-                            fontFamily = fontFamilyRaleway,
-                            fontWeight = FontWeight.W400,
-                            fontSize = 14.sp
-                        ),
-                        modifier = Modifier.padding(top = 5.dp)
-                    )
-                    IconButton({
-                        if (count.value > 0 || count.value != 0) {
-                            count.value--
-                        }
-                    }) {
-                        Box(
-                            modifier = Modifier
-                                .size(14.dp, 1.dp)
-                                .background(Color.White)
+                            painter = painterResource(R.drawable.white_trash),
+                            contentDescription = "delete",
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
             }
-            BootCard(painter, name, price)
         }
     }
 
     if (item == 1) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 20.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -1430,7 +1518,6 @@ fun BootCard(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .background(Color.White)
-            .fillMaxWidth()
             .then(modifierCard)
     ) {
         Row(
@@ -2376,11 +2463,15 @@ fun Popular(backOnClick: () -> Unit, showDetailsClick: () -> Unit) {
                 showDetailsClick = showDetailsClick
             )
             Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(whiteCart = painterResource(R.drawable.white_cart),
-                showDetailsClick = showDetailsClick)
+            BootCard(
+                whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick
+            )
             Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(whiteCart = painterResource(R.drawable.white_cart),
-                showDetailsClick = showDetailsClick)
+            BootCard(
+                whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick
+            )
             Spacer(Modifier.padding(bottom = 10.dp))
         }
     }
@@ -2413,11 +2504,15 @@ fun ListingOutDoor(backOnClick: () -> Unit, showDetailsClick: () -> Unit) {
                 showDetailsClick = showDetailsClick
             )
             Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(whiteCart = painterResource(R.drawable.white_cart),
-                showDetailsClick = showDetailsClick)
+            BootCard(
+                whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick
+            )
             Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(whiteCart = painterResource(R.drawable.white_cart),
-                showDetailsClick = showDetailsClick)
+            BootCard(
+                whiteCart = painterResource(R.drawable.white_cart),
+                showDetailsClick = showDetailsClick
+            )
             Spacer(Modifier.padding(bottom = 10.dp))
         }
     }
@@ -2426,13 +2521,11 @@ fun ListingOutDoor(backOnClick: () -> Unit, showDetailsClick: () -> Unit) {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun p() {
-    Details {
-
-    }
+    MyCart({}) { }
 }
 
 @Composable
-fun Details(backOnClick: () -> Unit) {
+fun Details(backOnClick: () -> Unit, cartClick: () -> Unit) {
     BackGround()
     Column(
         modifier = Modifier
@@ -2444,7 +2537,8 @@ fun Details(backOnClick: () -> Unit) {
             text = "Sneaker Shop",
             painter2 = painterResource(R.drawable.shop_bag),
             icon = 1,
-            backOnClick = backOnClick
+            backOnClick = backOnClick,
+            cartClick = cartClick
         )
         Column(
             Modifier
@@ -2460,37 +2554,50 @@ fun Details(backOnClick: () -> Unit) {
             val f4 = remember { mutableStateOf(false) }
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.45f)
             ) {
                 Image(
-                    painter = if (f0.value){
+                    painter = if (f0.value) {
                         painterResource(R.drawable.nike_7)
-                    }else if (f1.value){
+                    } else if (f1.value) {
                         painterResource(R.drawable.default_choosed_boot)
-                    }else if (f2.value){
+                    } else if (f2.value) {
                         painterResource(R.drawable.nike_5)
-                    }else if (f3.value){
+                    } else if (f3.value) {
                         painterResource(R.drawable.boot_image)
-                    }else if (f4.value){
+                    } else if (f4.value) {
                         painterResource(R.drawable.nike_6)
-                    }else{
-                        painterResource(R.drawable.nike_7)
+                    } else {
+                        painterResource(R.drawable.default_choosed_boot)
                     },
                     contentDescription = "sliderBoot",
-                    contentScale = ContentScale.Crop,
-                    modifier = if (f0.value){
+                    contentScale = if (f4.value) {
+                        ContentScale.Inside
+                    } else if (f0.value) {
+                        ContentScale.Crop
+                    } else {
+                        ContentScale.Crop
+                    },
+                    modifier = if (f0.value) {
+                        Modifier
+                            .fillMaxWidth(0.85f)
+                            .padding(bottom = 50.dp)
+                    } else if (f1.value) {
                         Modifier.fillMaxWidth(0.9f)
-                    }else if (f1.value){
-                        Modifier.fillMaxWidth(0.9f)
-                    }else{
+                    } else if (f4.value) {
+                        Modifier.fillMaxWidth(0.85f)
+                    } else if (f3.value) {
+                        Modifier.fillMaxWidth(0.85f)
+                    } else {
                         Modifier.fillMaxWidth()
                     }
                 )
                 Box(
                     contentAlignment = Alignment.BottomCenter,
-                    modifier = Modifier.fillMaxWidth()
-                        .fillMaxHeight(if (f2.value){0.45f}else{0.6f})
-                ){
+                    modifier = Modifier.fillMaxSize()
+                ) {
                     ExperimentalSlider()
                 }
             }
@@ -2650,10 +2757,9 @@ fun ExperimentalSlider() {
     val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
-            .offset(y = (-80).dp)
             .border(width = 2.dp, brush = gradient, shape = CircleShape)
             .fillMaxWidth()
-            .height(68.dp),
+            .fillMaxHeight(0.45f),
         contentAlignment = Alignment.BottomCenter
     ) {
         Slider(
@@ -2716,11 +2822,6 @@ fun InfoAboutSelectedBoot() {
             )
         )
     }
-}
-
-@Composable
-fun SelectedBootImage(nike: Painter) {
-
 }
 
 @Composable
@@ -2789,7 +2890,3 @@ fun BottomLiked() {
     }
 }
 
-@Composable
-fun ChooseBoot(nike: Painter, chooseClick: () -> Unit) {
-
-}
