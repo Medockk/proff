@@ -267,7 +267,7 @@ fun SetAlertDialog(mutableState: MutableState<Boolean>, onClick: () -> Unit) {
         },
         text = {
             Text(
-                text = "Мы Отправили Код Восстановления Пароля На Вашу Электронную Почту.",
+                text = "Мы Отправили Ко д Восстановления Пароля На Вашу Электронную Почту.",
                 maxLines = 2,
                 fontFamily = fontFamilyPoppins,
                 color = _707B81,

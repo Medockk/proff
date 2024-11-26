@@ -1,6 +1,7 @@
 package com.example.matule
 
 import android.content.Context
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -204,7 +205,8 @@ fun Favorite(
                 text = "Избранное",
                 painter2 = painterResource(R.drawable.unselected_heart),
                 icon = 1,
-                backOnClick = backOnClick
+                backOnClick = backOnClick,
+                favorite = true
             )
             Column(
                 Modifier.padding(top = 20.dp)
@@ -506,7 +508,10 @@ fun TextAll(text: String, popularClick: () -> Unit) {
                 fontSize = 12.sp,
                 color = _48B2E7
             ),
-            modifier = Modifier.clickable {
+            modifier = Modifier.clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
                 popularClick()
             }
         )
@@ -681,16 +686,6 @@ fun Categories(
     }
 }
 
-fun textFromItem(item: Int): String {
-    when (item) {
-        0 -> return "Все"
-        1 -> return "OutDoor"
-        2 -> return "Tennis"
-        3 -> return "Running"
-    }
-    return ""
-}
-
 @Composable
 fun BackGround() {
     Box(
@@ -706,7 +701,7 @@ fun TopBar(
     icon: Int? = null, firstPage: Boolean = false, cartScreen: Boolean = false,
     secondText: String? = null, backOnClick: (() -> Unit)? = null, context: Context? = null,
     data: Users? = null, sideMenuClick: (() -> Unit)? = null, img: MutableState<ByteArray?>? = null,
-    cartClick: (() -> Unit)? = null
+    cartClick: (() -> Unit)? = null, favorite: Boolean = false
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -725,14 +720,18 @@ fun TopBar(
             backOnClick?.invoke()
         }) {
             if (icon != null) {
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = "iconBack",
+                Box(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(Color.White)
-                        .size(44.dp)
-                )
+                        .size(44.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Default.KeyboardArrowLeft,
+                        contentDescription = "iconBack"
+                    )
+                }
 
             } else {
                 Image(
@@ -802,13 +801,8 @@ fun TopBar(
             Box(
                 modifier = Modifier
                     .size(50.dp)
-                    .clickable {
-                        if (cartClick != null) {
-                            cartClick()
-                        } else {
-                            heart.value = !heart.value
-                        }
-                    }
+                    .background(Color.White, CircleShape),
+                contentAlignment = Alignment.Center
             ) {
                 Image(
                     painter = if (!heart.value) {
@@ -816,7 +810,18 @@ fun TopBar(
                     } else {
                         painterResource(R.drawable.red_heart)
                     }, contentDescription = "shoppingBag",
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            if (cartClick != null) {
+                                cartClick()
+                            } else {
+                                heart.value = !heart.value
+                            }
+                        },
                     contentScale = ContentScale.Crop
                 )
             }
@@ -1137,15 +1142,15 @@ fun MyCart(backOnClick: (() -> Unit)?, nextClick: () -> Unit) {
                     showSubView = showSubView,
                 )
             }
-                Box(
-                    modifier = Modifier.padding(vertical = 15.dp)
-                ) {
-                    PreviewBootCard(
-                        painterResource(R.drawable.nike_2),
-                        "Nike Air Max 200",
-                        "₽94.05", 1
-                    )
-                }
+            Box(
+                modifier = Modifier.padding(vertical = 15.dp)
+            ) {
+                PreviewBootCard(
+                    painterResource(R.drawable.nike_2),
+                    "Nike Air Max 200",
+                    "₽94.05", 1
+                )
+            }
 
             Box {
                 PreviewBootCard(
@@ -1160,7 +1165,11 @@ fun MyCart(backOnClick: (() -> Unit)?, nextClick: () -> Unit) {
 }
 
 @Composable
-fun getModifierDraggable(xOffset: MutableState<Int>, showSubView: MutableState<Boolean>, showAddView: MutableState<Boolean>): Modifier {
+fun getModifierDraggable(
+    xOffset: MutableState<Int>,
+    showSubView: MutableState<Boolean>,
+    showAddView: MutableState<Boolean>
+): Modifier {
     return Modifier
         .offset(
             x = if (xOffset.value in 1..10) {
@@ -1457,7 +1466,7 @@ fun PreviewBootCard(
             }
             if (showSubView.value && !showAddView.value) {
                 BootCard(painter, name, price, Modifier.fillMaxWidth(0.85f))
-                Box{
+                Box {
                     IconButton(
                         {}, modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
@@ -2496,24 +2505,28 @@ fun ListingOutDoor(backOnClick: () -> Unit, showDetailsClick: () -> Unit) {
                 backOnClick = backOnClick
             )
         }
+        Spacer(Modifier.fillMaxHeight(0.03f))
         Categories(true)
-        Column(Modifier.padding(bottom = 25.dp)) {
-            BootCard(
-                whitePlus = painterResource(R.drawable.white_plus),
-                whiteCart = painterResource(R.drawable.white_cart),
-                showDetailsClick = showDetailsClick
-            )
-            Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(
-                whiteCart = painterResource(R.drawable.white_cart),
-                showDetailsClick = showDetailsClick
-            )
-            Spacer(Modifier.padding(bottom = 10.dp))
-            BootCard(
-                whiteCart = painterResource(R.drawable.white_cart),
-                showDetailsClick = showDetailsClick
-            )
-            Spacer(Modifier.padding(bottom = 10.dp))
+        Spacer(Modifier.fillMaxHeight(0.05f))
+        LazyColumn(Modifier.padding(bottom = 25.dp)) {
+            item {
+                BootCard(
+                    whitePlus = painterResource(R.drawable.white_plus),
+                    whiteCart = painterResource(R.drawable.white_cart),
+                    showDetailsClick = showDetailsClick
+                )
+                Spacer(Modifier.padding(bottom = 10.dp))
+                BootCard(
+                    whiteCart = painterResource(R.drawable.white_cart),
+                    showDetailsClick = showDetailsClick
+                )
+                Spacer(Modifier.padding(bottom = 10.dp))
+                BootCard(
+                    whiteCart = painterResource(R.drawable.white_cart),
+                    showDetailsClick = showDetailsClick
+                )
+                Spacer(Modifier.padding(bottom = 10.dp))
+            }
         }
     }
 }
@@ -2521,7 +2534,7 @@ fun ListingOutDoor(backOnClick: () -> Unit, showDetailsClick: () -> Unit) {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun p() {
-    MyCart({}) { }
+    Favorite({}, {}, {}, {}, {}) { }
 }
 
 @Composable
